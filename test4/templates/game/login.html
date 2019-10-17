@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="/static/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/login.js"></script>
+    <link rel="stylesheet" href="/static/css/login.css"/>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action="/loginverify/" method="post">
+    账号<input id="username_id" name="username" type="text" ><span id="username_span"></span><br><br>
+    密码<input id="password_id" name="password" type="password"><span id="password_span"></span><br><br>
+    验证码<input id="verify_id" name="verify" type="text"><span id="verify_span"></span><img src="/{{verify_image}}"><br><br>
+    <input id="subumit_id" type="submit" value="登录">&nbsp&nbsp<input type="button" value="注册">
+</form>
+</body>
+</html>

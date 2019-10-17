@@ -25,4 +25,10 @@ urlpatterns = [
     path('move/',views.move),
     path('showhero/',views.showhero),
     path('attack_hero/',views.attack_hero),
+    path('login/',views.login),
+    path('exit/',views.exit),
+    path('usernameverify/',views.usernameverify),
+    path('passwordverify/',views.passwordverify),
+    path('verifyverify/',views.verifyverify),
+    path('loginverify/',views.loginverify),
 ]

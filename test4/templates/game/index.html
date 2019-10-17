@@ -5,11 +5,12 @@
     <script type="text/javascript" src="/static/js/index.js"></script>
     <link rel="stylesheet" href="/static/css/index.css"/>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{{username}}</title>
 </head>
 <body>
-<img src="{{map.imagemap}}">
-<dir id="herolife_id"></dir>>
+<input type="button" id="exit_id" value="退出">
+<img src="{{map.imagemap}}" style="z-index:-1">
+<dir id="herolife_id"></dir>
 <div id="hero_list">
 {%for hero in hero_list%}
     {% if hero.username == request.session.username %}

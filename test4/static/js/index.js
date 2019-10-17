@@ -8,11 +8,13 @@ window.onload = function(){
 	while(true){var nowtime = new Date().getTime();if(nowtime>starttime+time)break;};
 }
 	function showhero(){
+	if($("title").text()!=""){
 	$.ajax({
             url: '/showhero/',
             type: 'post',
             data: {},
             success: function (data) {
+		if(data.error=='error'){clearTimeout(mytime);}
 		im_index = im_index + 1;
 		$("#herolife_id").attr('style','position:absolute;left:'+parseInt(hero_x).toString()+'px;top:'+parseInt(hero_y-50).toString()+'px;background-color:red;width:150;height:50;text-align:center');
 		$("#herolife_id").text(data.my_hero.herolife);
@@ -24,52 +26,64 @@ window.onload = function(){
 		$("#hero_list .my_hero_class").last().nextAll().remove();
 		$("#hero_list .my_hero_class").last().remove();
             },
-        });
-$("body").unbind('click').click(function(e){
-	var x = e.pageX;
-	var y = e.pageY;
-	var scale_x = Math.pow(Math.pow(x-hero_x,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
-	var scale_y = Math.pow(Math.pow(y-hero_y,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
-	if(x<hero_x){scale_x = -scale_x;};
-	if(y<hero_y){scale_y = -scale_y;};
-
-	hero_x = hero_x+scale_x*stride;
-	hero_y = hero_y+scale_y*stride;
+        });}
 	
-	console.log(hero_x);
-	var heroname = $(".my_hero_class").next().text();
-	$.ajax({
-            url: '/move/',
-            type: 'post',
-            data: {
+
+	setTimeout(arguments.callee,1000)
+};
+	$("body").keydown(function(e){
+		switch(e.which){
+	
+		case 81:	
+		$.ajax({
+            	url: '/attack_hero/',
+            	type: 'post',
+            	data: {},
+            	success: function (data) {
+                alert(data);
+           	 },
+        	});
+		};
+	});
+	$("body").unbind('click').click(function(e){
+		var x = e.pageX;
+		var y = e.pageY;
+		var scale_x = Math.pow(Math.pow(x-hero_x,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
+		var scale_y = Math.pow(Math.pow(y-hero_y,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
+		if(x<hero_x){scale_x = -scale_x;};
+		if(y<hero_y){scale_y = -scale_y;};
+
+		hero_x = hero_x+scale_x*stride;
+		hero_y = hero_y+scale_y*stride;
+	
+		console.log(hero_x);
+		var heroname = $(".my_hero_class").next().text();
+		$.ajax({
+            	url: '/move/',
+            	type: 'post',
+            	data: {
                 hero_x:hero_x,
 		hero_y:hero_y,
 		heroname:heroname,
-            },
-            success: function (data) {
+            	},
+            	success: function (data) {
                 $(".my_hero_class").css("left",parseInt(hero_x).toString()+"px");
 		$(".my_hero_class").css("top",parseInt(hero_y).toString()+"px");
 		$(".my_hero_class").attr('src',data);
-            },
-        });
-
-	
-});
-	setTimeout(arguments.callee,1000)
-};
-$("body").keydown(function(e){
-	switch(e.which){
-	
-	case 81:	
+            	},
+        	});
+	});
+	$("#exit_id").click(function(){
 	$.ajax({
-            url: '/attack_hero/',
-            type: 'post',
-            data: {},
-            success: function (data) {
-                alert(data);
-            },
-        });
-	};
-});
-	setTimeout(showhero,1000);
+            	url: '/exit/',
+            	type: 'post',
+            	data: {
+                username:$("title").text(),
+            	},
+            	success: function (data) {
+                
+            	},
+        	});
+	});
+	mytime = setTimeout(showhero,1000);
 };
