@@ -31,4 +31,7 @@ urlpatterns = [
     path('passwordverify/',views.passwordverify),
     path('verifyverify/',views.verifyverify),
     path('loginverify/',views.loginverify),
+    path('sleep/',views.sleep),
+    path('gosleep/',views.gosleep),
+    path('goattack/',views.goattack),
 ]

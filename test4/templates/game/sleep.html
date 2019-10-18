@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
     <script src="/static/jquery.js"></script>
-    <script type="text/javascript" src="/static/js/index.js"></script>
-    <link rel="stylesheet" href="/static/css/index.css"/>
+    <script type="text/javascript" src="/static/js/sleep.js"></script>
+    <link rel="stylesheet" href="/static/css/sleep.css"/>
     <meta charset="UTF-8">
     <title>{{username}}</title>
 </head>
 <body>
 <input type="button" id="exit_id" value="退出">
-<input type="button" id="gosleep_id" value="去生命之泉">
-<img src="{{map.imagemap}}" style="z-index:-1">
+<input type="button" id="goattack_id" value="去战场">
+<img src="{{map}}" style="position:absolute;left:0px;top:0px">
 <dir id="herolife_id"></dir>
 <div id="hero_list">
 {%for hero in hero_list%}
@@ -21,5 +21,6 @@
     {%endif%}
     {%endfor%}
 </div>
+<img id="restoration_id" src="/static/image/restoration.jpg">
 </body>
 </html>

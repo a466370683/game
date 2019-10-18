@@ -10,9 +10,22 @@ height:150px;
 
 #exit_id{
 position:absolute;
-left:500px;
+left:50%;
 width:100px;
 height:30px;
 z-index:1;
 color:red;
+}
+
+#gosleep_id{
+position:absolute;
+left:20%;
+width:150px;
+height:30px;
+background-color:red;
+}
+
+body{
+width:800px;
+height:800px;
 }
