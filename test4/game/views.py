@@ -15,11 +15,12 @@ def index(request):
     if ck==None:
         return redirect('http://127.0.0.1:8000/login/')
     map = GameMap.objects.get(pk=1)
-    print(user.imagemap)
-    if user.imagemap==2:
+    build_list = Build.objects.filter(buildmap=map)
+    map2 = GameMap.objects.get(pk=2)
+    if user.imagemap==map2:
         return redirect("http://127.0.0.1:8000/sleep/")
     hero_list = Hero.objects.filter(imagemap=map)
-    return render(request,'game/index.html',{'hero_list':hero_list,'map':map,'username':ck})
+    return render(request,'game/index.html',{'hero_list':hero_list,'map':map,'username':ck,'build_list':build_list})
 
 def adduser(request):
     pass
@@ -28,24 +29,42 @@ def regist(request):
     return render(request,'game/regist.html')
 
 def move(request):
-    hero_x = float(request.POST['hero_x'])
-    hero_y = float(request.POST['hero_y'])
     username = request.session['username']
     hero = Hero.objects.get(username=username)
-    hero.hero_x = round(hero_x,0)
-    hero.hero_y = round(hero_y,0)
+    hero.hero_x = float(request.POST['hero_x'])
+    hero.hero_y = float(request.POST['hero_y'])
     hero.save()
     src = '/static/image/timg.gif'
     return HttpResponse(src)
 
 def showhero(request):
-
     #依据map_id选择英雄，返回前端,不同前端只需改变不同的map_id即可获得相同map的英雄
     try:
         map_id = int(request.POST['map_id'])
+        her = Hero.objects.get(username=request.session['username'])
+        hero_x = request.POST['hero_x']
+        hero_y = request.POST['hero_y']
+        her.hero_x = float(hero_x)
+        her.hero_y = float(hero_y)
+        her.save()
+        if map_id==2:
+            restor_x = request.POST['restor_x']
+            restor_y = request.POST['restor_y']
+            restor_x = float(restor_x[:-2])
+            restor_y = float(restor_y[:-2])
+            map = GameMap.objects.get(pk=2)
+            list2 = Hero.objects.filter(imagemap=map)
+            hero_list = []
+            for hero in list2:
+                if hero.hero_x > restor_x - 150 and hero.hero_x < restor_x + 300 and hero.hero_y > restor_y - 150 and hero.hero_y < restor_y + 300:
+                    hero_list.append(hero)
+
+            for hero in hero_list:
+                if hero.herolife < 1000:
+                    hero.herolife += 1
+                    hero.save()
         map = GameMap.objects.get(pk=map_id)
         hero_list = Hero.objects.filter(imagemap=map)
-        her = Hero.objects.get(username=request.session['username'])
         list2 = []
         my_hero = {}
         my_hero['id'] = her.id
@@ -53,9 +72,11 @@ def showhero(request):
         my_hero['hero_y'] = her.hero_y
         my_hero['heroname'] = her.heroname
         my_hero['herolife'] = her.herolife
+        my_hero['herofire'] = "/static/image/fire/"+her.herofire
+
         for hero in hero_list:
             if hero.id != her.id:
-                list2.append({"id":hero.id,"hero_x":hero.hero_x,"hero_y":hero.hero_y,"heroname":hero.heroname})
+                list2.append({"id":hero.id,"hero_x":hero.hero_x,"hero_y":hero.hero_y,"heroname":hero.heroname,'herofire':hero.herofire})
         return JsonResponse({'hero_list':list2,'my_hero':my_hero,'error':'no error','map_id':map_id})
     except Exception as e:
         return JsonResponse({'error':'error'})
@@ -63,35 +84,41 @@ def showhero(request):
 def attack_hero(request):
     username = request.session['username']
     hero = Hero.objects.get(username=username)
-    list = Hero.objects.all()
-    hero_list = []
+    fire_hero = hero.herofire[-5]
+    fire_hero = 200*int(fire_hero)
     map = GameMap.objects.get(pk=2)
-    for h in list:
-        if h.username!=username:
-            if h.herolife<=0:
-                h.imagemap=map
-                h.save()
-            else:
-                hero_list.append(h)
+    print(request.POST['heroname'])
+    attack_h = Hero.objects.get(heroname=request.POST['heroname'])
+    attack_h.herolife -= fire_hero
+    if attack_h.herolife<=0:
+        attack_h.imagemap = map
+    attack_h.save()
+    attack_name = {}
+    attack_name['hero_x'] = attack_h.hero_x
+    attack_name['hero_y'] = attack_h.hero_y
+    attack_name['herofire'] = fire_hero
+    #hero_list = []
+    #list = Hero.objects.all()
+    # for h in list:
+    #     if h.username!=username:
+    #         if h.herolife<=0:
+    #             h.imagemap=map
+    #             h.save()
+    #         else:
+    #             hero_list.append(h)
+    #
+    # attack_name = []
+    # for h in hero_list:
+    #     if h.hero_x>hero.hero_x-150 and h.hero_x<hero.hero_x+150 and h.hero_y>hero.hero_y-150 and h.hero_y<hero.hero_y+150:
+    #             h.herolife -= fire_hero
+    #             h.save()
+    #             item = {}
+    #             item['hero_x'] = h.hero_x
+    #             item['hero_y'] = h.hero_y
+    #             item['herofire'] = fire_hero
+    #             attack_name.append(item)
 
-    for h in hero_list:
-        if hero.hero_x>h.hero_x:
-            if hero.hero_x-150<h.hero_x and hero.hero_y-150<h.hero_y and hero.hero_y+150>h.hero_y:
-                h.herolife -= 200
-                h.save()
-                # hero_attacked = Hero.objects.get(username=h.username)
-                # hero_attacked.herolife = h.herolife
-                # hero_attacked.save()
-                print(h.herolife)
-        elif hero.hero_x<h.hero_x:
-            if hero.hero_x+150>h.hero_x and hero.hero_y-150<h.hero_y and hero.hero_y+150>h.hero_y:
-                h.herolife -= 200
-                h.save()
-                # hero_attacked = Hero.objects.get(username=h.username)
-                # hero_attacked.herolife = h.herolife
-                # hero_attacked.save()
-                print(h.herolife)
-    return HttpResponse('attack')
+    return JsonResponse({"attack_name":attack_name})
 
 def login(request):
     verify_image,str_verify = get_image_path()
@@ -151,8 +178,15 @@ def verifyverify(request):
     return HttpResponse(data)
 
 def loginverify(request):
-    request.session['username'] = request.POST['username']
-    return redirect("http://127.0.0.1:8000/index/")
+    username = request.POST['username']
+    request.session['username'] = username
+    hero = Hero.objects.get(username=username)
+    map = GameMap.objects.get(pk=1)
+    map2 = GameMap.objects.get(pk=2)
+    if hero.imagemap==map:
+        return redirect("http://127.0.0.1:8000/index/")
+    elif hero.imagemap==map2:
+        return redirect("http://127.0.0.1:8000/sleep/")
 
 def sleep(request):
     ck = request.session.get("username")

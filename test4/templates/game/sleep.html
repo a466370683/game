@@ -15,9 +15,9 @@
 <div id="hero_list">
 {%for hero in hero_list%}
     {% if hero.username == request.session.username %}
-<img src="/static/image/timg.png" class="my_hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;"><span id="heroname_id">{{hero.heroname}}</span>
+<img src="/static/image/timg.png" class="my_hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;"><span id="heroname_class">{{hero.heroname}}</span>
     {%else%}
-<img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px">
+    <img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px"><span class="heroname_class">{{hero.heroname}}</span>
     {%endif%}
     {%endfor%}
 </div>

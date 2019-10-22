@@ -8,6 +8,9 @@
     <title>{{username}}</title>
 </head>
 <body>
+{%for build in build_list%}
+<img class="build_class" src="{{build.buildname}}" style="position:absolute;left:{{build.build_x}}px;top:{{build.build_y}}px;width:{{build.build_width}}px;height:{{build.build_height}}px">
+{%endfor%}
 <input type="button" id="exit_id" value="退出">
 <input type="button" id="gosleep_id" value="去生命之泉">
 <img src="{{map.imagemap}}" style="z-index:-1">
@@ -17,7 +20,7 @@
     {% if hero.username == request.session.username %}
 <img src="/static/image/timg.png" class="my_hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;"><span id="heroname_id">{{hero.heroname}}</span>
     {%else%}
-<img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px">
+<img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px"><span class="heroname_class">{{hero.heroname}}</span>
     {%endif%}
     {%endfor%}
 </div>

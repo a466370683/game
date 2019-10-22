@@ -1,57 +1,73 @@
 window.onload = function(){
-	var stride = 20;
-	var hero_x = parseInt($(".my_hero_class").css("left"));
-	var hero_y = parseInt($(".my_hero_class").css("top"));
+	var stride =1;
+	var hero_x = parseFloat($(".my_hero_class").css("left"));
+	var hero_y = parseFloat($(".my_hero_class").css("top"));
 	var im_index = 0;
 	var height = document.body.clientHeight;
 	var width = document.body.clientWidth;
 	var scroll_x = 0;
 	var scroll_y = 0;
+	/*移动变量*/
+	var x = parseFloat($(".my_hero_class").css("left"));
+	var y = parseFloat($(".my_hero_class").css("top"));
+
+	function auto_move(){
+	    var scale_x = Math.pow(Math.pow(x-hero_x,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
+		var scale_y = Math.pow(Math.pow(y-hero_y,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
+		if(x<hero_x){scale_x = -scale_x;};
+		if(y<hero_y){scale_y = -scale_y;};
+        if(Math.abs(x-hero_x)>=1){hero_x = hero_x+scale_x*stride;};
+		if(Math.abs(y-hero_y)>=1){hero_y = hero_y+scale_y*stride;};
+	};
 	/*隐藏滚动条*/
-	$("body").css("overflow","hidden"); 
+	$("body").css("overflow","hidden");
 	function showhero(){
-		scroll_x = parseInt(hero_x) - parseInt(document.body.clientWidth/2);
-		scroll_y = parseInt(hero_y) - parseInt(document.body.clientHeight/2);
+	    auto_move()
+		scroll_x = hero_x - document.body.clientWidth/2;
+		scroll_y = hero_y - document.body.clientHeight/2;
 		if(scroll_x<0){scroll_x=0;};
 		if(scroll_y<0){scroll_y=0;};
 		if(scroll_x>($(document).width()-document.body.scrollWidth)){scroll_x = $(document).width()-document.body.scrollWidth;};
 		if(scroll_y>($(document).height()-document.body.scrollHeight)){scroll_y = $(document).height()-document.body.scrollHeight;};
 		$(document).scrollTop(scroll_y);
 		$(document).scrollLeft(scroll_x);
+
+		/*血池恢复功能*/
+		var restor_x = $("#restoration_id").css("left");
+		var restor_y = $("#restoration_id").css("top");
 		if($("title").text()!=""){
 	$.ajax({
             url: '/showhero/',
             type: 'post',
-            data: {map_id:'2'},
+            data: {map_id:'2',
+            restor_x:restor_x,
+            restor_y:restor_y,
+            hero_x:hero_x,
+            hero_y:hero_y},
             success: function (data) {
-		if(data.error=='error'){clearTimeout(mytime);window.location.href="http://127.0.0.1:8000/login/"};
+		/*if(data.error=='error'){clearTimeout(mytime);window.location.href="http://127.0.0.1:8000/login/"};*/
 		im_index = im_index + 1;
-		$("#herolife_id").attr('style','position:absolute;left:'+parseInt(hero_x).toString()+'px;top:'+parseInt(hero_y-50).toString()+'px;background-color:red;width:150;height:50;text-align:center');
+		$("#herolife_id").attr('style','position:absolute;left:'+parseFloat(hero_x)+'px;top:'+parseFloat(hero_y-50).toString()+'px;background-color:red;width:150;height:50;text-align:center');
+		console.log(hero_x);
 		$("#herolife_id").text(data.my_hero.herolife);
-                var str_hero_list = '<img src="/static/image/timg.png" class="my_hero_class" style="position:absolute;left:'+data.my_hero.hero_x+'px;top:'+data.my_hero.hero_y+'px;z-index:'+im_index.toString()+';"><span>'+data.my_hero.heroname+'</span>';
+        var str_hero_list = '<img src="/static/image/timg.png" class="my_hero_class" style="position:absolute;left:'+data.my_hero.hero_x+'px;top:'+data.my_hero.hero_y+'px;z-index:'+im_index.toString()+';"><span class="heroname_class" style="position:absolute;left:'+data.my_hero.hero_x+'px;top:'+parseFloat(data.my_hero.hero_y-50)+'px;z-index:'+im_index.toString()+';background-color:#f0f;">'+data.my_hero.heroname+'</span>';
 		for (var i=0;i<data.hero_list.length;i++){
-		str_hero_list = str_hero_list + '<img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:'+data.hero_list[i].hero_x+'px;top:'+data.hero_list[i].hero_y+'px;z-index:'+im_index.toString()+';">';
+		str_hero_list = str_hero_list + '<img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:'+data.hero_list[i].hero_x+'px;top:'+data.hero_list[i].hero_y+'px;z-index:'+im_index.toString()+';"><span class="heroname_class" style="position:absolute;left:'+data.hero_list[i].hero_x+'px;top:'+parseFloat(data.hero_list[i].hero_y-50)+'px;z-index:'+im_index.toString()+';background-color:#f0f;">'+data.hero_list[i].heroname+'</span>';
 		};
 		$("#hero_list").prepend(str_hero_list);
 		$("#hero_list .my_hero_class").last().nextAll().remove();
 		$("#hero_list .my_hero_class").last().remove();
             },
         });}
-	
 
-	mytime = setTimeout(arguments.callee,1000)
+	mytime = setTimeout(arguments.callee,20);
+
 	};
 
 	$("body").unbind('click').click(function(e){
-		var x = e.pageX;
-		var y = e.pageY;
-		var scale_x = Math.pow(Math.pow(x-hero_x,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
-		var scale_y = Math.pow(Math.pow(y-hero_y,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
-		if(x<hero_x){scale_x = -scale_x;};
-		if(y<hero_y){scale_y = -scale_y;};
-
-		hero_x = hero_x+scale_x*stride;
-		hero_y = hero_y+scale_y*stride;
+		x = e.pageX;
+		y = e.pageY;
+		auto_move()
 		if(scroll_x<0){scroll_x=0;};
 		if(scroll_y<0){scroll_y=0;};
 		if(scroll_x>($(document).width()-document.body.scrollWidth)){scroll_x = $(document).width()-document.body.scrollWidth;};
@@ -67,16 +83,16 @@ window.onload = function(){
             	type: 'post',
             	data: {
                 hero_x:hero_x,
-		hero_y:hero_y,
-		heroname:heroname,
+		        hero_y:hero_y,
+		        heroname:heroname,
             	},
             	success: function (data) {
-                $(".my_hero_class").css("left",parseInt(hero_x).toString()+"px");
-		$(".my_hero_class").css("top",parseInt(hero_y).toString()+"px");
+                $(".my_hero_class").css("left",parseFloat(hero_x).toString()+"px");
+		$(".my_hero_class").css("top",parseFloat(hero_y).toString()+"px");
 		$(".my_hero_class").attr('src',data);
             	},
         	});
-		$	("#herolife_id").attr('style','position:absolute;left:'+parseInt(hero_x).toString()+'px;top:'+parseInt(hero_y-50).toString()+'px;background-color:red;width:150;height:50;text-align:center');
+		$	("#herolife_id").attr('style','position:absolute;left:'+parseFloat(hero_x).toString()+'px;top:'+parseFloat(hero_y-50).toString()+'px;background-color:red;width:150;height:50;text-align:center');
 	});
 
 	$("#exit_id").click(function(){
@@ -107,5 +123,5 @@ window.onload = function(){
             	},
         	});
 	});
-var mytime = setTimeout(showhero,1000);
+var mytime = setTimeout(showhero,20);
 };
