@@ -9,7 +9,6 @@ class Hero(models.Model):
     herolevel = models.IntegerField()
     herogender = models.BooleanField()
     password = models.CharField(max_length=20)
-    herofire = models.CharField(max_length=20)
     herobody = models.CharField(max_length=20)
     hero_x = models.FloatField()
     hero_y = models.FloatField()
@@ -43,3 +42,17 @@ class Boss(models.Model):
     boss_x = models.FloatField()
     boss_y = models.FloatField()
     bossmap = models.ForeignKey('GameMap',on_delete = models.CASCADE)
+
+class Weapon(models.Model):
+    weaponname = models.CharField(max_length=50)
+    weapon_x = models.IntegerField()
+    weapon_y = models.IntegerField()
+    hero = models.ForeignKey("Hero",on_delete = models.CASCADE)
+
+class Skill(models.Model):
+    skillname = models.CharField(max_length=50)
+    skill_x = models.IntegerField()
+    skill_y = models.IntegerField()
+    derection = models.CharField(max_length=20)
+    hero = models.ForeignKey("Hero",on_delete = models.CASCADE)
+

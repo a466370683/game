@@ -34,4 +34,7 @@ urlpatterns = [
     path('sleep/',views.sleep),
     path('gosleep/',views.gosleep),
     path('goattack/',views.goattack),
+    path('index/changegun/',views.changegun),
+    path('index/attackgun/',views.attackgun),
+    path('index/delete_skill/',views.delete_skill)
 ]
