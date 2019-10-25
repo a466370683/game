@@ -8,12 +8,14 @@ import random
 from PIL import Image,ImageDraw,ImageFont
 import os
 import re
+import time
 
 # Create your views here.
 def index(request):
-    ck = request.session.get("username")
-    user = Hero.objects.get(username=ck)
-    if ck==None:
+    try:
+        ck = request.session.get("username")
+        user = Hero.objects.get(username=ck)
+    except Exception as e:
         return redirect('http://127.0.0.1:8000/login/')
     map = GameMap.objects.get(pk=1)
     build_list = Build.objects.filter(buildmap=map)
@@ -31,13 +33,16 @@ def regist(request):
     return render(request,'game/regist.html')
 
 def move(request):
-    username = request.session['username']
-    hero = Hero.objects.get(username=username)
-    hero.hero_x = float(request.POST['hero_x'])
-    hero.hero_y = float(request.POST['hero_y'])
-    hero.save()
-    src = '/static/image/timg.png'
-    return HttpResponse(src)
+    try:
+        hero = Hero.objects.get(username=username)
+        username = request.session['username']
+        hero.hero_x = float(request.POST['hero_x'])
+        hero.hero_y = float(request.POST['hero_y'])
+        hero.save()
+        src = '/static/image/timg.png'
+        return HttpResponse(src)
+    except Exception as e:
+        return redirect("http://127.0.0.1:8000/login/")
 
 def showhero(request):
     #依据map_id选择英雄，返回前端,不同前端只需改变不同的map_id即可获得相同map的英雄
@@ -103,6 +108,7 @@ def showhero(request):
         my_hero['herofire'] = my_weapon.weaponname
         my_hero['weapon_x'] = my_weapon.weapon_x
         my_hero['weapon_y'] = my_weapon.weapon_y
+        chat_list = get_chat_list(request)
         skill_list = []
         for skill in Skill.objects.all():
             if (skill.derection==""):
@@ -126,9 +132,8 @@ def showhero(request):
             if hero.id != her.id:
                 hero_weapon = Weapon.objects.get(hero=hero)
                 list2.append({"id":hero.id,"hero_x":hero.hero_x,"hero_y":hero.hero_y,"heroname":hero.heroname,'herolife':hero.herolife,'herolevel':hero.herolevel,'herofire':hero_weapon.weaponname,'weapon_x':hero_weapon.weapon_x,'weapon_y':hero_weapon.weapon_y})
-        return JsonResponse({'hero_list':list2,'my_hero':my_hero,'error':'no error','map_id':map_id,'skill_list':skill_list})
+        return JsonResponse({'hero_list':list2,'my_hero':my_hero,'error':'no error','map_id':map_id,'skill_list':skill_list,'chat_list':chat_list})
     except Exception as e:
-        print(e)
         return JsonResponse({'error':'error'})
 
 def attack_hero(request):
@@ -201,6 +206,7 @@ def get_image_path():
 
 def exit(request):
     del request.session['username']
+    del request.session['datetime']
     return redirect('http://127.0.0.1:8000/login/')
 
 def usernameverify(request):
@@ -234,6 +240,7 @@ def verifyverify(request):
 def loginverify(request):
     username = request.POST['username']
     request.session['username'] = username
+    request.session['datetime'] = int(time.time())
     hero = Hero.objects.get(username=username)
     map = GameMap.objects.get(pk=1)
     map2 = GameMap.objects.get(pk=2)
@@ -316,3 +323,29 @@ def get_skill_move(x,hero_x,y,hero_y):
     result_x = (hero_x-x)**2/((hero_x-x)**2+(hero_y-y)**2)
     result_y = (hero_y-y)**2/((hero_x-x)**2+(hero_y-y)**2)
     return result_x,result_y
+
+def chat(request):
+    hero = Hero.objects.get(username=request.session['username'])
+    label = int(request.POST['label'])
+    content = request.POST['content']
+    datetime = int(time.time())
+    chat = Chat()
+    chat.hero = hero
+    chat.label = label
+    chat.content = content
+    chat.datetime = datetime
+    chat.save()
+    return HttpResponse("添加成功")
+
+def get_chat_list(request):
+    try:
+        list1 = Chat.objects.filter(label=request.POST['chat_label']).filter(datetime__gt=request.session['datetime']).order_by("-datetime")[:5]
+        chat_list = []
+        for chat in list1:
+            item = {}
+            item['content'] = chat.content
+            item['heroname'] = chat.hero.heroname
+            chat_list.append(item)
+        return chat_list[::-1]
+    except Exception as e:
+        return ""

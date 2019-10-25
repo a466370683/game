@@ -27,5 +27,20 @@
     {%endif%}
     {%endfor%}
 </div>
+<div id="chat_id">
+    <ul style="color:#f0f;">
+        {%for chat in chat_list%}
+        <li>{{chat.heroname}}说：{{chat.content}}
+        </li>
+        {%endfor%}
+    </ul>
+    <div id="chatdiv_id">
+    <select id="select_id" style="background-color:#099;border:2px solid #099;">
+        <option value="1">世界</option>
+        <option value="2">当前</option>
+    </select>
+    <input id="chatinput_id" name="chatname" type="text" autocomplete="off" >
+    </div>
+</div>
 </body>
 </html>

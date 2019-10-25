@@ -12,6 +12,7 @@ class Hero(models.Model):
     herobody = models.CharField(max_length=20)
     hero_x = models.FloatField()
     hero_y = models.FloatField()
+    loginlabel = models.BooleanField()
     imagemap = models.ForeignKey('GameMap',on_delete = models.CASCADE)
 
 class Monster(models.Model):
@@ -24,10 +25,10 @@ class Monster(models.Model):
     imagemap = models.ForeignKey('GameMap',on_delete = models.CASCADE)
 
 class GameMap(models.Model):
-    imagemap = models.CharField(max_length=100)
+    imagemap = models.CharField(max_length=50)
 
 class Build(models.Model):
-    buildname = models.CharField(max_length=20)
+    buildname = models.CharField(max_length=50)
     build_x = models.IntegerField()
     build_y = models.IntegerField()
     build_height = models.IntegerField()
@@ -56,3 +57,16 @@ class Skill(models.Model):
     derection = models.CharField(max_length=20)
     hero = models.ForeignKey("Hero",on_delete = models.CASCADE)
 
+class Chat(models.Model):
+    datetime = models.IntegerField()
+    content = models.CharField(max_length=30)
+    label = models.IntegerField()
+    hero = models.ForeignKey("Hero",on_delete = models.CASCADE)
+
+class Home(models.Model):
+    homebuild = models.CharField(max_length=50)
+    homebuild_x = models.IntegerField()
+    homebuild_y = models.IntegerField()
+    homewidth = models.IntegerField()
+    homeheight = models.IntegerField()
+    hero = models.ForeignKey("Hero",on_delete = models.CASCADE)

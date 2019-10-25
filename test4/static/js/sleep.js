@@ -76,7 +76,6 @@ window.onload = function(){
 		if((hero_y-$(document).scrollTop())>(height/2)){scroll_y = scroll_y + 20;$(document).scrollTop(scroll_y)};
 		if((hero_x-$(document).scrollLeft())<(width/2)){scroll_x = scroll_x - 20;$(document).scrollLeft(scroll_x)};
 		if((hero_y-$(document).scrollTop())<(height/2)){scroll_y = scroll_y - 20;$(document).scrollTop(scroll_y)};
-		console.log(hero_x);
 		var heroname = $(".my_hero_class").next().text();
 		$.ajax({
             	url: '/move/',
