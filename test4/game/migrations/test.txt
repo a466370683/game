@@ -1,2 +1,6 @@
+ALTER TABLE game_hero CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;
+
 insert into game_gamemap values(1,'/static/image/background1.jpg');
-insert into game_hero values(1,'a466370683','fenghen',);
+insert into game_hero values(1,'a466370683','风痕依旧',1000,0,1,1,'a290436323','',200,0,0,1);
+insert into game_build values(1,'/static/image/build/1.png',300,300,100,700,1);
+insert into game_weapon values(1,'/static/image/fire/level_fire_1.png',0,0,1);

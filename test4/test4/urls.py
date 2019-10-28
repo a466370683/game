@@ -37,5 +37,8 @@ urlpatterns = [
     path('index/changegun/',views.changegun),
     path('index/attackgun/',views.attackgun),
     path('index/delete_skill/',views.delete_skill),
-    path('index/chat/',views.chat)
+    path('index/chat/',views.chat),
+    path('sleep/addlife/',views.addlife),
+    path('sleep/otherhome/',views.otherhome),
+    path('sleep/addhomebuild/',views.addhomebuild),
 ]

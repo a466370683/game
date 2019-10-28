@@ -10,7 +10,6 @@ height:150px;
 
 #exit_id{
 position:absolute;
-left:50%;
 width:100px;
 height:30px;
 z-index:1;
@@ -19,16 +18,42 @@ color:red;
 
 #gosleep_id{
 position:absolute;
-left:20%;
-width:150px;
+width:100px;
 height:30px;
+z-index:1;
 background-color:red;
 }
 
-body{
-width:800px;
-height:800px;
-z-index:-1;
+#adventrue_id{
+position:absolute;
+width:100px;
+height:30px;
+z-index:1;
+background-color:red;
+}
+
+#boss_id{
+position:absolute;
+width:100px;
+height:30px;
+z-index:1;
+background-color:red;
+}
+
+#menu_id{
+position:absolute;
+width:100px;
+height:30px;
+z-index:1;
+background-color:red;
+}
+
+#goods_id{
+position:absolute;
+width:100px;
+height:30px;
+z-index:1;
+background-color:red;
 }
 
 #chat_id{

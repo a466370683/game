@@ -9,22 +9,85 @@ from PIL import Image,ImageDraw,ImageFont
 import os
 import re
 import time
+from django.db import transaction
 
-# Create your views here.
-def index(request):
+#验证装饰器
+def decorator(func):
+    def innerfunc(request):
+        try:
+            username = request.session["username"]
+        except Exception as e:
+            print(e)
+            return redirect("http://127.0.0.1:8000/login/")
+        return func(request)
+    return innerfunc
+
+#获取自身英雄
+def get_my_hero(hero,weapon):
+    my_hero = {}
+    my_hero['id'] = hero.id
+    my_hero['hero_x'] = hero.hero_x
+    my_hero['hero_y'] = hero.hero_y
+    my_hero['heroname'] = hero.heroname
+    my_hero['herolife'] = hero.herolife
+    my_hero['herolevel'] = hero.herolevel
+    my_hero['username'] = hero.username
+    my_hero['herofire'] = weapon.weaponname
+    my_hero['weapon_x'] = weapon.weapon_x
+    my_hero['weapon_y'] = weapon.weapon_y
+    return my_hero
+
+def get_chat_list(request):
     try:
-        ck = request.session.get("username")
-        user = Hero.objects.get(username=ck)
+        list1 = Chat.objects.filter(label=request.POST['chat_label']).filter(datetime__gt=request.session['datetime']).order_by("-datetime")[:5]
+        chat_list = []
+        for chat in list1:
+            item = {}
+            item['content'] = chat.content
+            item['heroname'] = chat.hero.heroname
+            chat_list.append(item)
+        return chat_list[::-1]
     except Exception as e:
-        return redirect('http://127.0.0.1:8000/login/')
+        return ""
+
+def get_home(hero_id):
+    hero = Hero.objects.get(pk=hero_id)
+    #hero_list = Hero.objects.filter(hero_id=hero.id)
+    #for hero in hero_list:
+    h_list = Home.objects.filter(hero=hero)
+
+    home_list = []
+    for h in h_list:
+        print(h.id)
+        home = {}
+        home_patter = re.compile("fire")
+        if(home_patter.search(h.homebuild)):
+            home['heroname'] = h.hero.heroname
+        home['homebuild'] = h.homebuild
+        home['homebuild_x'] = h.homebuild_x
+        home['homebuild_y'] = h.homebuild_y
+        home['homewidth'] = h.homewidth
+        home['homeheight'] = h.homeheight
+        home_list.append(home)
+
+    return home_list
+# Create your views here.
+@decorator
+def index(request):
     map = GameMap.objects.get(pk=1)
     build_list = Build.objects.filter(buildmap=map)
-    map2 = GameMap.objects.get(pk=2)
-    if user.imagemap==map2:
-        return redirect("http://127.0.0.1:8000/sleep/")
-    hero_list = Hero.objects.filter(imagemap=map)
+    hero = Hero.objects.get(username=request.session["username"])
+    hero.hero_x = 1500
+    hero.hero_y = 500
+    hero.save()
+    hero_list = []
+    list2 = Hero.objects.filter(imagemap=map)
+    for hero in list2:
+        weapon = Weapon.objects.get(hero=hero)
+        hero = get_my_hero(hero,weapon)
+        hero_list.append(hero)
     skill_list = Skill.objects.all()
-    return render(request,'game/index.html',{'hero_list':hero_list,'map':map,'username':ck,'build_list':build_list,'skill_list':skill_list})
+    return render(request,'game/index.html',{'hero_list':hero_list,'map':map,'username':request.session["username"],'build_list':build_list,'skill_list':skill_list})
 
 def adduser(request):
     pass
@@ -34,8 +97,8 @@ def regist(request):
 
 def move(request):
     try:
-        hero = Hero.objects.get(username=username)
         username = request.session['username']
+        hero = Hero.objects.get(username=username)
         hero.hero_x = float(request.POST['hero_x'])
         hero.hero_y = float(request.POST['hero_y'])
         hero.save()
@@ -55,24 +118,11 @@ def showhero(request):
         her.hero_y = float(hero_y)
         her.save()
         x = float(request.POST['x'])
-        if map_id==2:
-            restor_x = request.POST['restor_x']
-            restor_y = request.POST['restor_y']
-            restor_x = float(restor_x[:-2])
-            restor_y = float(restor_y[:-2])
-            map = GameMap.objects.get(pk=2)
-            list2 = Hero.objects.filter(imagemap=map)
-            hero_list = []
-            for hero in list2:
-                if hero.hero_x > restor_x - 150 and hero.hero_x < restor_x + 300 and hero.hero_y > restor_y - 150 and hero.hero_y < restor_y + 300:
-                    hero_list.append(hero)
-
-            for hero in hero_list:
-                if hero.herolife < 1000:
-                    hero.herolife += 1
-                    hero.save()
         map = GameMap.objects.get(pk=map_id)
-        hero_list = Hero.objects.filter(imagemap=map)
+        if(map_id==1):
+            hero_list = Hero.objects.filter(imagemap=map)
+        elif(map_id==2):
+            hero_list = Hero.objects.filter(hero_id=her.hero_id)
         my_weapon = Weapon.objects.get(hero=her)
         path = my_weapon.weaponname
         fire_patter = re.compile("z")
@@ -97,17 +147,7 @@ def showhero(request):
             my_weapon.weapon_y = her.hero_y - 131
         my_weapon.weaponname = path
         my_weapon.save()
-        list2 = []
-        my_hero = {}
-        my_hero['id'] = her.id
-        my_hero['hero_x'] = her.hero_x
-        my_hero['hero_y'] = her.hero_y
-        my_hero['heroname'] = her.heroname
-        my_hero['herolife'] = her.herolife
-        my_hero['herolevel'] = her.herolevel
-        my_hero['herofire'] = my_weapon.weaponname
-        my_hero['weapon_x'] = my_weapon.weapon_x
-        my_hero['weapon_y'] = my_weapon.weapon_y
+        my_hero = get_my_hero(her,my_weapon)
         chat_list = get_chat_list(request)
         skill_list = []
         for skill in Skill.objects.all():
@@ -128,12 +168,26 @@ def showhero(request):
             item['skill_x'] = skill.skill_x
             item['skill_y'] = skill.skill_y
             skill_list.append(item)
+
+        list2 = []
         for hero in hero_list:
             if hero.id != her.id:
                 hero_weapon = Weapon.objects.get(hero=hero)
-                list2.append({"id":hero.id,"hero_x":hero.hero_x,"hero_y":hero.hero_y,"heroname":hero.heroname,'herolife':hero.herolife,'herolevel':hero.herolevel,'herofire':hero_weapon.weaponname,'weapon_x':hero_weapon.weapon_x,'weapon_y':hero_weapon.weapon_y})
+                list2.append(
+                    {"id": hero.id, "hero_x": hero.hero_x, "hero_y": hero.hero_y, "heroname": hero.heroname,
+                     'herolife': hero.herolife, 'herolevel': hero.herolevel, 'herofire': hero_weapon.weaponname,
+                     'weapon_x': hero_weapon.weapon_x, 'weapon_y': hero_weapon.weapon_y})
+            # for hero in list2:
+            #     if hero.hero_x > restor_x - 150 and hero.hero_x < restor_x + 300 and hero.hero_y > restor_y - 150 and hero.hero_y < restor_y + 300:
+            #         hero_list.append(hero)
+            #
+            # for hero in hero_list:
+            #     if hero.herolife < 1000:
+            #         hero.herolife += 1
+            #         hero.save()
         return JsonResponse({'hero_list':list2,'my_hero':my_hero,'error':'no error','map_id':map_id,'skill_list':skill_list,'chat_list':chat_list})
     except Exception as e:
+        print(e)
         return JsonResponse({'error':'error'})
 
 def attack_hero(request):
@@ -249,30 +303,61 @@ def loginverify(request):
     elif hero.imagemap==map2:
         return redirect("http://127.0.0.1:8000/sleep/")
 
+@decorator
 def sleep(request):
-    ck = request.session.get("username")
-    if ck == None:
-        return redirect('http://127.0.0.1:8000/login/')
+    #list = range(0,10000,300)
     map = GameMap.objects.get(pk=2)
-    hero_list = Hero.objects.filter(imagemap=map)
-    return render(request, 'game/sleep.html', {'hero_list': hero_list, 'map': map.imagemap, 'username': ck})
+    hero = Hero.objects.get(username=request.session['username'])
+    goods_label = 0
+    if(hero.id==hero.hero_id):
+        goods_label = 1
+    target_hero = Hero.objects.get(pk=hero.hero_id)
+    list1 = Hero.objects.filter(hero_id=target_hero.id)
+    home = Home.objects.filter(hero=hero)[0]
+    if(hero.hero_x!=400):
+        hero.hero_x = home.homebuild_x - 150
+        hero.hero_y = home.homebuild_y - 150
+    hero.save()
+    hero_list = []
+    if(list1):
+        for hero in list1:
+            weapon = Weapon.objects.get(hero=hero)
+            h = get_my_hero(hero,weapon)
+            hero_list.append(h)
+    home_list = get_home(target_hero.id)
+    return render(request, 'game/sleep.html', {'hero_list': hero_list, 'map': map.imagemap,'username':request.session["username"],'home_list':home_list,'goods_label':goods_label})
 
+@decorator
 def gosleep(request):
-    user = Hero.objects.get(username=request.POST['username'])
+    hero = Hero.objects.get(username=request.session['username'])
+    home = Home.objects.filter(hero=hero)[0]
     map = GameMap.objects.get(pk=2)
-    user.imagemap = map
-    user.save()
+    hero.hero_x = home.homebuild_x-150
+    hero.hero_y = home.homebuild_y-150
+    hero.imagemap = map
+    hero.save()
     return HttpResponse("去加血")
 
+@decorator
 def goattack(request):
-    user = Hero.objects.get(username=request.session['username'])
+    hero = Hero.objects.get(username=request.session['username'])
     map = GameMap.objects.get(pk=1)
-    user.imagemap = map
-    user.save()
+    hero.imagemap = map
+    build_list = Build.objects.filter(buildmap_id=map)
+    if (hero.hero_y > 300):
+        hero.hero_y = 300
+    if(hero.hero_x>1500):
+        hero.hero_x = 1500
+
+    for build in build_list:
+        if(hero.hero_x>build.build_x-150 and hero.hero_x<build.build_x+150 and hero.hero_y>build.build_y-150 and hero.hero_y<build.build_y+150):
+            hero.hero_x = build.build_x - 150
+            hero.hero_y = build.build_y - 150
+    hero.save()
     return HttpResponse("去战场")
 
 def changegun(request):
-    hero = Hero.objects.get(username=request.POST['username'])
+    hero = Hero.objects.get(username=request.session["username"])
     weapon = Weapon.objects.get(hero=hero)
     path = weapon.weaponname
     if(request.POST['label']=='1'):
@@ -297,7 +382,7 @@ def changegun(request):
 
 def attackgun(request):
     x = request.POST['x']
-    hero = Hero.objects.get(username=request.POST['username'])
+    hero = Hero.objects.get(username=request.session['username'])
     skill = Skill()
     skill.skillname = request.POST['skillname']
     skill.hero = hero
@@ -314,9 +399,12 @@ def attackgun(request):
     return HttpResponse("子弹添加成功")
 
 def delete_skill(request):
-    skill_id = int(request.POST['skill_id'])
-    skill = Skill.objects.get(pk=skill_id)
-    skill.delete()
+    try:
+        skill_id = int(request.POST['skill_id'])
+        skill = Skill.objects.get(pk=skill_id)
+        skill.delete()
+    except Exception as e:
+        pass
     return HttpResponse("删除子弹成功")
 
 def get_skill_move(x,hero_x,y,hero_y):
@@ -337,15 +425,46 @@ def chat(request):
     chat.save()
     return HttpResponse("添加成功")
 
-def get_chat_list(request):
+def addlife(request):
+    hero = Hero.objects.get(username=request.session['username'])
+    home = Home.objects.get(hero=hero)
+    if(hero.hero_x>home.homebuild_x-150 and hero.hero_x<home.homebuild_x+150 and hero.hero_y>home.homebuild_y-150 and hero.hero_y<home.homebuild_y + 150):
+        hero.herolife += 1
+        if(hero.herolife>=1000):
+            hero.herolife = 1000;
+    hero.save()
+    return HttpResponse("加血成功")
+
+def otherhome(request):
+    label = request.POST['label']
+    hero = Hero.objects.get(username=request.session['username'])
     try:
-        list1 = Chat.objects.filter(label=request.POST['chat_label']).filter(datetime__gt=request.session['datetime']).order_by("-datetime")[:5]
-        chat_list = []
-        for chat in list1:
-            item = {}
-            item['content'] = chat.content
-            item['heroname'] = chat.hero.heroname
-            chat_list.append(item)
-        return chat_list[::-1]
+        with transaction.atomic():
+            if(label=='1'):
+                hero.hero_x = 400
+                hero.hero_y = 200
+                target_hero = Hero.objects.get(pk=hero.hero_id + 1)
+                if(target_hero.id):
+                    hero.hero_id += 1
+            elif(label == '2'):
+                hero.hero_x = 400
+                hero.hero_y = 600
+                target_hero = Hero.objects.get(pk=hero.hero_id - 1)
+                if (target_hero.id):
+                    hero.hero_id -= 1
+            hero.save()
+            return HttpResponse('1')
     except Exception as e:
-        return ""
+        print(e)
+        return HttpResponse("0")
+
+def addhomebuild(request):
+    hero = Hero.objects.get(username=request.session['username'])
+    home = Home()
+    home.homebuild_x = request.POST['x']
+    home.homebuild_y = request.POST['y']
+    home.homewidth = request.POST['width']
+    home.homeheight = request.POST['height']
+    home.homebuild = request.POST['homebuild']
+    home.hero = hero
+    home.save()

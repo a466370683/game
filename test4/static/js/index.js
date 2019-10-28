@@ -1,6 +1,6 @@
 window.onload = function(){
     /*步长*/
-	var stride = 0.5;
+	var stride = 1;
 	/*英雄横纵坐标*/
 	var hero_x = parseFloat($(".my_hero_class").css("left"));
 	var hero_y = parseFloat($(".my_hero_class").css("top"));
@@ -88,8 +88,32 @@ window.onload = function(){
         $("#chat_id").css("left",chat_x);
         $("#chat_id").css("top",chat_y);
 	}
+
+	/*设置菜单栏位置*/
+	function setmenupost(obj,menu_x)
+	{
+	menu_x = menu_x*window.innerWidth;
+	var menu_x = parseFloat(menu_x + scroll_x);
+	var menu_y = parseFloat(scroll_y);
+    obj.css("left",menu_x);
+    obj.css("top",menu_y)
+	}
+
     /*刷新图像方法*/
 	function showhero(){
+	    /*跑图功能*/
+	    auto_move();
+	    auto_scroll();
+	    /*聊天设置*/
+	    chat_set()
+	    /*菜单栏显示位置*/
+	    setmenupost($("#exit_id"),0.8);
+	    setmenupost($("#gosleep_id"),0.15)
+	    setmenupost($("#adventrue_id"),0.3);
+	    setmenupost($("#boss_id"),0.45)
+	    setmenupost($("#menu_id"),0)
+	    setmenupost($("#goods_id"),0.6)
+	    /*自己被伤害显示自动消失*/
 	    if(my_attack_label==1){
 	    my_attack_num += 1;
 	    if(my_attack_num==50){
@@ -103,7 +127,7 @@ window.onload = function(){
 	    var gun = $(this);
 	    var attack_left = parseFloat($(this).css("left"));
 	    var attack_top = parseFloat($(this).css("top"));
-	    if(attack_left<=0||attack_left>=3000){
+	    if(attack_left<=0||attack_left>=2100){
 	    gun.remove();
 	    $.ajax({
             	url: 'delete_skill/',
@@ -143,7 +167,7 @@ window.onload = function(){
             	url: '/attack_hero/',
             	type: 'post',
             	data: {
-            	heroname:$(".heroname_class").eq(index+1).text(),
+            	heroname:$(".heroname_class").eq(index).text(),
             	skill_id:gun.attr("alt"),
             	},
             	success: function (data) {
@@ -177,11 +201,6 @@ window.onload = function(){
 	    /*让打中人后的伤害值延迟消失*/
 	    if(attack_label==1){num = num + 1;
 	    if(num==50){$(".attack_class").remove();num=0;attack_label=0;}};
-	   /*跑图功能*/
-	    auto_move();
-	    auto_scroll();
-	    /*聊天设置*/
-	    chat_set()
 
 	/*刷新主要请求数据获取*/
 	    if($("title").text()!=""){
@@ -212,8 +231,8 @@ window.onload = function(){
         	});
         /*自动跳转到老家界面*/
 		window.location.href="http://127.0.0.1:8000/sleep/";};
-		$("#herolife_id").attr('style','position:absolute;left:'+parseFloat(hero_x+40).toString()+'px;top:'+parseFloat(hero_y-40).toString()+'px;background-color:red;color:#fff;');
-		$("#herolife_id").text(data.my_hero.herolife);
+		/*$("#herolife_id").attr('style','position:absolute;left:'+parseFloat(hero_x+40).toString()+'px;top:'+parseFloat(hero_y-40).toString()+'px;background-color:red;color:#fff;');
+		$("#herolife_id").text(data.my_hero.herolife);*/
 		if(Math.abs(data.my_hero.herolife-befor_herolife)>=200){
 		my_attack_label = 1;
 		drop_life = Math.abs(data.my_hero.herolife-befor_herolife);
@@ -222,11 +241,92 @@ window.onload = function(){
 		};
 		befor_herolife = data.my_hero.herolife;
 		var my_back_x = 80*(parseFloat(data.my_hero.herolife)/1000);
-        var str_hero_list = '<img src="/static/image/timg.png" alt="'+data.my_hero.herolife+'" class="my_hero_class" style="position:absolute;left:'+data.my_hero.hero_x+'px;top:'+data.my_hero.hero_y+'px;">'
+		$(".my_hero_class").css("left",data.my_hero.hero_x);
+		$(".my_hero_class").css("top",data.my_hero.hero_y);
+		$(".my_hero_class").attr("alt",data.my_hero.herolife);
+		$("#herofire_id").attr("src",data.my_hero.herofire);
+		$("#herofire_id").css("left",data.my_hero.weapon_x);
+		$("#herofire_id").css("top",data.my_hero.weapon_y);
+		$(".my_herolife_class").css("left",parseFloat(data.my_hero.hero_x+40));
+		$(".my_herolife_class").css("top",parseFloat(data.my_hero.hero_y-25));
+		$(".my_herolife_class").text(data.my_hero.herolife);
+		$(".my_heroname_class").css("left",data.my_hero.hero_x+40);
+		$(".my_heroname_class").css("top",data.my_hero.hero_y-50);
+		$(".my_herolevel_class").css("left",data.my_hero.hero_x);
+		$(".my_herolevel_class").css("top",data.my_hero.hero_y-50);
+		$(".my_herolevel_class").text('Lv'+data.my_hero.herolevel);
+		$(".my_herolifeback_class").css("left",data.my_hero.hero_x+my_back_x+40);
+		$(".my_herolifeback_class").css("top",data.my_hero.hero_y-25);
+		$(".my_herolifeback_class").css("width",80-my_back_x);
+        /*添加及删除英雄列表*/
+        for(var i=0;i<data.hero_list.length;i++)
+        {
+            var back_x = 80*(parseFloat(data.hero_list[i].herolife)/1000);
+            var id = data.hero_list[i].id.toString();
+            $("#"+id).find('.hero_class').css("left",data.hero_list[i].hero_x);
+            $("#"+id).find('.hero_class').css("top",data.hero_list[i].hero_y);
+            $("#"+id).find('.herofire_class').attr("src",data.hero_list[i].herofire);
+            $("#"+id).find('.herofire_class').css("left",data.hero_list[i].weapon_x);
+            $("#"+id).find('.herofire_class').css("top",data.hero_list[i].weapon_y);
+            $("#"+id).find('.heroname_class').css("left",data.hero_list[i].hero_x+40);
+            $("#"+id).find('.heroname_class').css("top",data.hero_list[i].hero_y-50);
+            $("#"+id).find('.heroname_class').text(data.hero_list[i].heroname);
+            $("#"+id).find('.herolife_class').css("left",data.hero_list[i].hero_x+40);
+            $("#"+id).find('.herolife_class').css("top",data.hero_list[i].hero_y-25);
+            $("#"+id).find('.herolife_class').text(data.hero_list[i].herolife);
+            $("#"+id).find('.herolifeback_class').css("left",data.hero_list[i].hero_x+back_x+40);
+            $("#"+id).find('.herolifeback_class').css("top",data.hero_list[i].hero_y-25);
+            $("#"+id).find('.herolifeback_class').css("width",80-back_x);
+            $("#"+id).find('.herolevel_class').css("left",data.hero_list[i].hero_x);
+            $("#"+id).find('.herolevel_class').css("top",data.hero_list[i].hero_y-50);
+            $("#"+id).find('.herolevel_class').text('Lv'+data.hero_list[i].herolevel);
+        }
+		var new_array = []
+		for(var i=0;i<data.hero_list.length;i++)
+		{
+		    new_array.push(data.hero_list[i].heroname)
+		}
+		$(".other_list_class").each(function(index)
+		{
+            var h_name = $(this).find('.heroname_class').text();
+            var result = $.inArray(h_name,new_array);
+            if(result==-1)
+            {
+                $(this).remove();
+            }
+		});
+
+        var old_array = []
+        $(".other_list_class").each(function(index)
+        {
+            var h_name = $(this).find('.heroname_class').text();
+            old_array.push(h_name)
+        })
+
+        for(var i=0;i<data.hero_list.length;i++)
+        {
+            var h_name = data.hero_list[i].heroname;
+            var result = $.inArray(h_name,old_array);
+            if(result==-1)
+            {
+                var back_x = 80*(parseFloat(data.hero_list[i].herolife)/1000);
+                var str_hero_list = '<div class="other_list_class" id="'+data.hero_list[i].id+'">'
+                str_hero_list = str_hero_list + '<img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:'+data.hero_list[i].hero_x+'px;top:'+data.hero_list[i].hero_y+'px;"><img class="herofire_class" src="'+data.hero_list[i].herofire+'" style="position:absolute;left:'+parseFloat(data.hero_list[i].weapon_x)+'px;top:'+parseFloat(data.hero_list[i].weapon_y)+'px;">'
+		        str_hero_list = str_hero_list + '<span class="heroname_class" style="position:absolute;left:'+parseFloat(data.hero_list[i].hero_x+40)+'px;top:'+parseFloat(data.hero_list[i].hero_y-50)+'px;z-index:'+im_index.toString()+';background-color:#f0f;width:100px">'+data.hero_list[i].heroname+'</span>'
+		        str_hero_list = str_hero_list + '<span class="herolife_class" style="position:absolute;left:'+parseFloat(data.hero_list[i].hero_x+40)+'px;top:'+parseFloat(data.hero_list[i].hero_y-25)+'px;z-index:'+im_index.toString()+';background-color:red;width:80px;height:20px;color:#fff;">'+data.hero_list[i].herolife+'</span>'
+		        str_hero_list = str_hero_list + '<span class="herolifeback_class" style="position:absolute;left:'+parseFloat(data.hero_list[i].hero_x+back_x+40)+'px;top:'+parseFloat(data.hero_list[i].hero_y-25)+'px;z-index:'+(im_index+1).toString()+';background-color:#000;width:'+parseFloat(80-back_x)+'px;height:20px"></span>';
+		        str_hero_list = str_hero_list + '<span class="herolevel_class" style="position:absolute;left:'+parseFloat(data.hero_list[i].hero_x)+'px;top:'+parseFloat(data.hero_list[i].hero_y-50)+'px;z-index:'+im_index.toString()+';background-color:#f0f;">Lv'+data.hero_list[i].herolevel+'</span>';
+                str_hero_list = str_hero_list + '</div>'
+                $(".other_list_class").append(str_hero_list)
+            }
+        }
+        /*var str_hero_list = '<img src="/static/image/timg.png" alt="'+data.my_hero.herolife+'" class="my_hero_class" style="position:absolute;left:'+data.my_hero.hero_x+'px;top:'+data.my_hero.hero_y+'px;">'
         str_hero_list = str_hero_list + '<img id="herofire_id" src="'+data.my_hero.herofire+'" style="position:absolute;left:'+data.my_hero.weapon_x+'px;top:'+data.my_hero.weapon_y+'px;">'
         str_hero_list = str_hero_list + '<span class="heroname_class" style="position:absolute;left:'+parseFloat(data.my_hero.hero_x+40)+'px;top:'+parseFloat(data.my_hero.hero_y-50)+'px;z-index:'+im_index.toString()+';background-color:#f0f;width:100px">'+data.my_hero.heroname+'</span>'
         str_hero_list = str_hero_list + '<span class="herolifeback_class" style="position:absolute;left:'+parseFloat(data.my_hero.hero_x+my_back_x+40)+'px;top:'+parseFloat(data.my_hero.hero_y-25)+'px;z-index:'+(im_index+1).toString()+';background-color:#000;width:'+parseFloat(80-my_back_x)+'px;height:20px"></span>';
 		str_hero_list = str_hero_list + '<span style="position:absolute;left:'+parseFloat(data.my_hero.hero_x)+'px;top:'+parseFloat(data.my_hero.hero_y-50)+'px;z-index:'+im_index.toString()+';background-color:#f0f;">Lv:'+data.my_hero.herolevel+'</span>'
+		str_hero_list = str_hero_list + '<span class="herolife_class" style="position:absolute;left:'+parseFloat(data.my_hero.hero_x+40)+'px;top:'+parseFloat(data.my_hero.hero_y-25)+'px;z-index:'+im_index.toString()+';background-color:red;width:80px;height:20px;color:#fff;">'+data.my_hero.herolife+'</span>'
+
 		for (var i=0;i<data.hero_list.length;i++){
 		var back_x = 80*(parseFloat(data.hero_list[i].herolife)/1000);
 		str_hero_list = str_hero_list + '<img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:'+data.hero_list[i].hero_x+'px;top:'+data.hero_list[i].hero_y+'px;"><img src="'+data.hero_list[i].herofire+'" style="position:absolute;left:'+parseFloat(data.hero_list[i].weapon_x)+'px;top:'+parseFloat(data.hero_list[i].weapon_y)+'px;">'
@@ -234,7 +334,7 @@ window.onload = function(){
 		str_hero_list = str_hero_list + '<span class="herolife_class" style="position:absolute;left:'+parseFloat(data.hero_list[i].hero_x+40)+'px;top:'+parseFloat(data.hero_list[i].hero_y-25)+'px;z-index:'+im_index.toString()+';background-color:red;width:80px;height:20px;color:#fff;">'+data.hero_list[i].herolife+'</span>'
 		str_hero_list = str_hero_list + '<span class="herolifeback_class" style="position:absolute;left:'+parseFloat(data.hero_list[i].hero_x+back_x+40)+'px;top:'+parseFloat(data.hero_list[i].hero_y-25)+'px;z-index:'+(im_index+1).toString()+';background-color:#000;width:'+parseFloat(80-back_x)+'px;height:20px"></span>';
 		str_hero_list = str_hero_list + '<span style="position:absolute;left:'+parseFloat(data.hero_list[i].hero_x)+'px;top:'+parseFloat(data.hero_list[i].hero_y-50)+'px;z-index:'+im_index.toString()+';background-color:#f0f;">Lv:'+data.hero_list[i].herolevel+'</span>'
-		};
+		};*/
 		var skill_str = "";
 		for(var i=0;i<data.skill_list.length;i++){
 		skill_str = skill_str + '<img class="gun_class" src="'+data.skill_list[i].skillname+'" style="position:absolute;width:200px;height:130px;left:'+data.skill_list[i].skill_x+'px;top:'+parseFloat(data.skill_list[i].skill_y-50)+'px" alt="'+data.skill_list[i].skill_id+'">'
@@ -250,9 +350,8 @@ window.onload = function(){
 		$("ul li").remove();
 		$("ul").prepend(chat_str);
 		$("body").prepend(skill_str);
-		$("#hero_list").prepend(str_hero_list);
-		$("#hero_list .my_hero_class").last().nextAll().remove();
-		$("#hero_list .my_hero_class").last().remove();
+		$("#hero_list").append(str_hero_list);
+//		$(".hero_class").remove();
             },
         });}
 	
@@ -269,6 +368,24 @@ window.onload = function(){
 	    e.stopPropagation();
 	    });
 	$("#chatinput_id").click(function(e){
+	    e.stopPropagation();
+	});
+	$("#exit_id").click(function(e){
+	    e.stopPropagation();
+	});
+	$("#goods_id").click(function(e){
+	    e.stopPropagation();
+	});
+	$("#boss_id").click(function(e){
+	    e.stopPropagation();
+	});
+	$("#adventrue_id").click(function(e){
+	    e.stopPropagation();
+	});
+	$("#gosleep_id").click(function(e){
+	    e.stopPropagation();
+	});
+	$("#menu_id").click(function(e){
 	    e.stopPropagation();
 	});
 	$("body").keydown(function(e){
@@ -316,9 +433,7 @@ window.onload = function(){
 	    var temp_y = y
 		x = e.pageX;
 		y = e.pageY;
-		console.log($("#chat_id").css("left"));
-		console.log($("#chat_id").css("top"));
-		if(x<parseFloat($("#chat_id").css("left"))+400&&y>parseFloat($("#chat_id").css("top"))){x = temp_x;y = temp_y;console.log(12345);e.preventDefault();};
+		if(x<parseFloat($("#chat_id").css("left"))+400&&y>parseFloat($("#chat_id").css("top"))){x = temp_x;y = temp_y;e.preventDefault();};
 		auto_move();
 
 		/*跑图功能*/
@@ -338,7 +453,6 @@ window.onload = function(){
             	data: {
                 hero_x:hero_x,
 		        hero_y:hero_y,
-		        heroname:heroname,
             	},
             	success: function (data) {
                 $(".my_hero_class").css("left",parseFloat(hero_x).toString()+"px");
@@ -346,7 +460,7 @@ window.onload = function(){
 		        $(".my_hero_class").attr('src',data);
             	},
         	});
-		$("#herolife_id").attr('style','position:absolute;left:'+parseFloat(hero_x+40).toString()+'px;top:'+parseFloat(hero_y-40).toString()+'px;background-color:red;color:#fff;');
+		/*$("#herolife_id").attr('style','position:absolute;left:'+parseFloat(hero_x+40).toString()+'px;top:'+parseFloat(hero_y-40).toString()+'px;background-color:red;color:#fff;');*/
 	});
 	/*点击退出按钮后退出当前用户*/
 	$("#exit_id").click(function(){
@@ -363,17 +477,13 @@ window.onload = function(){
 	});
 	/*点击区域跳转到其它地图*/
 	$("#gosleep_id").click(function(event){
-		/*解决点击事件冲突，阻止事件冒泡*/
-		event.stopPropagation();
-		window.location.href = "http://127.0.0.1:8000/sleep/";
 		$.ajax({
             	url: '/gosleep/',
             	type: 'post',
             	data: {
-                username:$("title").text(),
             	},
             	success: function (data) {
-
+                    window.location.href = "http://127.0.0.1:8000/sleep/";
             	},
         	});
 	});

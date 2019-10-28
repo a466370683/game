@@ -15,18 +15,34 @@
 <img class="gun_class" src="{{build.buildname}}" style="position:absolute;left:{{skill.skill_x}}px;top:{{skill.skill_y}}px;width:30px;height:30px;alt:{{skill.id}}">
 {%endfor%}
 <input type="button" id="exit_id" value="退出">
-<input type="button" id="gosleep_id" value="去生命之泉">
+<input type="button" id="gosleep_id" value="回家">
+<input type="button" id="adventrue_id" value="冒险">
+<input type="button" id="boss_id" value="BOSS">
+<input type="button" id="menu_id" value="菜单">
+<input type="button" id="goods_id" value="商城">
 <img src="{{map.imagemap}}" style="z-index:-1">
 <dir id="herolife_id"></dir>
 <div id="hero_list">
 {%for hero in hero_list%}
     {% if hero.username == request.session.username %}
-<img alt="hero.herolife" src="/static/image/timg.png" class="my_hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;"><span id="heroname_id">{{hero.heroname}}</span>
+<img alt="hero.herolife" src="/static/image/timg.png" class="my_hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;">
+    <img id="herofire_id" src="{{hero.herofire}}" style="position:absolute;left:{{hero.weapon_x}}px;top:{{hero.heroweapon_y}}px;">
+    <span class="my_herolife_class" style="position:absolute;left:{{hero.hero_x|add:40}}px;top:{{hero.hero_y|add:-25}}px;z-index:0;background-color:red;width:80px;height:20px;color:#fff;">{{hero.herolife}}</span>'
+    <span class="my_heroname_class" style="position:absolute;left:{{hero.hero_x|add:40}}px;top:{{hero.hero_y|add:-50}}px;z-index:0;background-color:#f0f;width:100px">{{hero.heroname}}</span>
+    <span class="my_herolevel_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;z-index:0;background-color:#f0f;">Lv{{hero.herolevel}}</span>
+    <span class="my_herolifeback_class" style="position:absolute;left:{{hero.hero_x|add:40}}px;top:{{hero.hero_y|add:-25}}px;z-index:0;background-color:#000;width:0px;height:20px"></span>
     {%else%}
-<img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px"><span class="heroname_class">{{hero.heroname}}</span>
-    {%endif%}
+    <div class="other_list_class" id="{{hero.id}}">
+<img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px">
+    <img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;">
+        <span class="heroname_class" style="position:absolute;left:{{hero.hero_x|add:40}}px;top:{{hero.hero_y|add:-50}}px;z-index:0;background-color:#f0f;width:100px">{{hero.heroname}}</span>
+        <span class="herolife_class" style="position:absolute;left:{{hero.hero_x|add:40}}px;top:{{hero.hero_y|add:-25}}px;z-index:0;background-color:red;width:80px;height:20px;color:#fff;">{{hero.herolife}}</span>
+        <span class="herolifeback_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y|add:-25}}px;z-index:;background-color:#000;width:0px;height:20px"></span>
+        <span class="herolevel_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;z-index:0;background-color:#f0f;">Lv{{hero.herolevel}}</span>
+        <img class="herofire_class" src="{{hero.herofire}}" style="position:absolute;left:{{hero.weapon_x}}px;top:{{hero.weapon_y}}px;">
+    </div>
+        {%endif%}
     {%endfor%}
-</div>
 <div id="chat_id">
     <ul style="color:#f0f;">
         {%for chat in chat_list%}

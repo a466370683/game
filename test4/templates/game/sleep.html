@@ -2,26 +2,75 @@
 <html lang="en">
 <head>
     <script src="/static/jquery.js"></script>
-    <script type="text/javascript" src="/static/js/public.js"></script>
     <script type="text/javascript" src="/static/js/sleep.js"></script>
     <link rel="stylesheet" href="/static/css/sleep.css"/>
     <meta charset="UTF-8">
     <title>{{username}}</title>
 </head>
 <body>
+<img src="/static/image/homebuild/door.png" id="befordoor_id">
+<img src="/static/image/homebuild/door.png" id="downdoor_id">
+{% if goods_label == 1 %}
+<img class="image_goods_class" src="/static/image/build/1.png" style="display:none;position:absolute;left:0px;top:220px;width:300px;height:100px;z-index:1">
+<img class="image_goods_class" src="/static/image/homebuild/111.png" style="display:none;position:absolute;left:0px;top:350px;width:300px;height:100px;z-index:1">
+<img class="image_goods_class" src="/static/image/build/1.jpeg" style="display:none;position:absolute;left:0px;top:470px;width:300px;height:100px;z-index:1">
+<button class="goods_class" style="position:absolute;left:0px;top:200px;width:120px;height:30px">围栏</button>
+<button class="goods_class" style="position:absolute;left:0px;top:330px;width:120px;height:30px">草坪</button>
+    <button class="goods_class" style="position:absolute;left:0px;top:450px;width:120px;height:30px">生产厂房</button>
+{% endif %}
+<div class="home_list_class">
+{%for home in home_list%}
+<img class="home_class" src="{{home.homebuild}}"  style="left:{{home.homebuild_x}}px;top:{{home.homebuild_y}}px;height:{{home.homeheight}}px;width:{{home.homewidth}}px;z-index:1">
+{%if home.heroname%}
+    <div style="position:absolute;left:{{home.homebuild_x|add:-220}}px;top:{{home.homebuild_x|add:-250}}px;color:#f0f;font-size:30px;width:600px;height:600px;background-color:#5b5;z-index:0"></div>
+    <span style="position:absolute;left:{{home.homebuild_x|add:-100}}px;top:{{home.homebuild_x|add:-300}}px;color:#f0f;font-size:30px;z-index:2">{{home.heroname}}的家</span>
+     <span style="position:absolute;left:{{home.homebuild_x|add:30}}px;top:{{home.homebuild_x}}px;color:#f0f;font-size:20px;z-index:0">回血火把</span>
+    {%endif%}
+    {%endfor%}
+</div>
+<input type="button" id="goattack_id" value="战场">
 <input type="button" id="exit_id" value="退出">
-<input type="button" id="goattack_id" value="去战场">
-<img src="{{map}}" style="position:absolute;left:0px;top:0px">
+<input type="button" id="adventrue_id" value="冒险">
+<input type="button" id="boss_id" value="BOSS">
+<input type="button" id="menu_id" value="菜单">
+<input type="button" id="goods_id" value="商城">
 <dir id="herolife_id"></dir>
 <div id="hero_list">
 {%for hero in hero_list%}
     {% if hero.username == request.session.username %}
-<img src="/static/image/timg.png" class="my_hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;"><span id="heroname_class">{{hero.heroname}}</span>
+<img alt="hero.herolife" src="/static/image/timg.png" class="my_hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;"><span id="heroname_id">{{hero.heroname}}</span>
+    <img id="herofire_id" src="{{hero.herofire}}" style="position:absolute;left:{{hero.weapon_x}}px;top:{{hero.heroweapon_y}}px;">
+    <span class="my_herolife_class" style="position:absolute;left:{{hero.hero_x|add:40}}px;top:{{hero.hero_y|add:-25}}px;z-index:0;background-color:red;width:80px;height:20px;color:#fff;">{{hero.herolife}}</span>'
+    <span class="my_heroname_class" style="position:absolute;left:{{hero.hero_x|add:40}}px;top:{{hero.hero_y|add:-50}}px;z-index:0;background-color:#f0f;width:100px">{{hero.heroname}}</span>
+    <span class="my_herolevel_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;z-index:0;background-color:#f0f;">Lv{{hero.herolevel}}</span>
+    <span class="my_herolifeback_class" style="position:absolute;left:{{hero.hero_x|add:40}}px;top:{{hero.hero_y|add:-25}}px;z-index:0;background-color:#000;width:0px;height:20px"></span>
     {%else%}
-    <img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px"><span class="heroname_class">{{hero.heroname}}</span>
-    {%endif%}
+    <div class="other_list_class" id="{{hero.id}}">
+<img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px">
+    <img src="/static/image/timg.png" class="hero_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;">
+        <span class="heroname_class" style="position:absolute;left:{{hero.hero_x|add:40}}px;top:{{hero.hero_y|add:-50}}px;z-index:0;background-color:#f0f;width:100px">{{hero.heroname}}</span>
+        <span class="herolife_class" style="position:absolute;left:{{hero.hero_x|add:40}}px;top:{{hero.hero_y|add:-25}}px;z-index:0;background-color:red;width:80px;height:20px;color:#fff;">{{hero.herolife}}</span>
+        <span class="herolifeback_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y|add:-25}}px;z-index:;background-color:#000;width:0px;height:20px"></span>
+        <span class="herolevel_class" style="position:absolute;left:{{hero.hero_x}}px;top:{{hero.hero_y}}px;z-index:0;background-color:#f0f;">Lv{{hero.herolevel}}</span>
+        <img class="herofire_class" src="{{hero.herofire}}" style="position:absolute;left:{{hero.weapon_x}}px;top:{{hero.weapon_y}}px;">
+    </div>
+        {%endif%}
     {%endfor%}
 </div>
-<img id="restoration_id" src="/static/image/restoration.jpg">
+<div id="chat_id">
+    <ul style="color:#f0f;">
+        {%for chat in chat_list%}
+        <li>{{chat.heroname}}说：{{chat.content}}
+        </li>
+        {%endfor%}
+    </ul>
+    <div id="chatdiv_id">
+    <select id="select_id" style="background-color:#099;border:2px solid #099;">
+        <option value="1">世界</option>
+        <option value="2">当前</option>
+    </select>
+    <input id="chatinput_id" name="chatname" type="text" autocomplete="off" >
+    </div>
+</div>
 </body>
 </html>

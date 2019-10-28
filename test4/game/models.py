@@ -14,6 +14,7 @@ class Hero(models.Model):
     hero_y = models.FloatField()
     loginlabel = models.BooleanField()
     imagemap = models.ForeignKey('GameMap',on_delete = models.CASCADE)
+    hero_id = models.IntegerField()
 
 class Monster(models.Model):
     monstername = models.CharField(max_length=20)
