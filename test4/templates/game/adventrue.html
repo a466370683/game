@@ -2,43 +2,30 @@
 <html lang="en">
 <head>
     <script src="/static/jquery.js"></script>
-    <script type="text/javascript" src="/static/js/sleep.js"></script>
-    <link rel="stylesheet" href="/static/css/sleep.css"/>
+    <script type="text/javascript" src="/static/js/adventrue.js"></script>
+    <link rel="stylesheet" href="/static/css/adventrue.css"/>
     <meta charset="UTF-8">
-    <title>{{username}}</title>
+    <title>Title</title>
 </head>
 <body>
 {%for monster in monster_list%}
 <div class="monster_class" id="{{monster.id}}">
-    <img src="{{monster.monstername}}" style="position:absolute;left:{{monster.monster_x}}px;top:{{monster.monster_y}}px;z-index:2">
+    <img src="{{monster.monstername}}" style="position:absolute;left:{{monster.monster_x}}px;top:{{monster.monster_y}}px;width:150px;height:150px;z-index:2">
     <span class="monsterlife_class" style="position:absolute;left:{{monster.monster_x|add:30}}px;top:{{monster.monster_y}}px;z-index:2;background-color:red;width:80px;height:20px;color:#fff;">{{monster.monsterlife}}</span>
 <span class="monsterback_class" style="position:absolute;left:{{monster.monster_x|add:30}}px;top:{{monster.monster_y}}px;z-index:5;background-color:#000;width:0px;height:20px;color:#fff;">
 </div>
 {%endfor%}
-
-    {% if goods_label == 1 %}
-<img class="image_goods_class" src="/static/image/build/1.png" style="display:none;position:absolute;left:0px;top:220px;width:300px;height:100px;z-index:1">
-<img class="image_goods_class" src="/static/image/homebuild/111.png" style="display:none;position:absolute;left:0px;top:350px;width:300px;height:100px;z-index:1">
-<img class="image_goods_class" src="/static/image/build/1.jpeg" style="display:none;position:absolute;left:0px;top:470px;width:300px;height:100px;z-index:1">
-<button class="goods_class" style="position:absolute;left:0px;top:200px;width:120px;height:30px">围栏</button>
-<button class="goods_class" style="position:absolute;left:0px;top:330px;width:120px;height:30px">草坪</button>
-    <button class="goods_class" style="position:absolute;left:0px;top:450px;width:120px;height:30px">生产厂房</button>
-{% endif %}
-<div class="home_list_class">
-    <img class="nosetbuild_class" src="/static/image/homebuild/door.png" id="befordoor_id">
-<img class="nosetbuild_class" src="/static/image/homebuild/door.png" id="downdoor_id">
-{%for home in home_list%}
-<img class="nosetbuild_class" src="{{home.homebuild}}"  style="position:absolute;left:{{home.homebuild_x}}px;top:{{home.homebuild_y}}px;height:{{home.homeheight}}px;width:{{home.homewidth}}px;z-index:1">
-{%if home.heroname%}
-    <div style="position:absolute;left:{{home.homebuild_x|add:-220}}px;top:{{home.homebuild_x|add:-250}}px;color:#f0f;font-size:30px;width:600px;height:600px;background-color:#5b5;z-index:0"></div>
-    <span style="position:absolute;left:{{home.homebuild_x|add:-100}}px;top:{{home.homebuild_x|add:-300}}px;color:#f0f;font-size:30px;z-index:2">{{home.heroname}}的家</span>
-     <span style="position:absolute;left:{{home.homebuild_x|add:30}}px;top:{{home.homebuild_x}}px;color:#f0f;font-size:20px;z-index:0">回血火把</span>
-    {%endif%}
-    {%endfor%}
+{%for boss in boss_list%}
+<div class="boss_class" id="{{boss.id}}">
+    <img src="{{boss.bossname}}" style="position:absolute;left:{{boss.boss_x}}px;top:{{boss.boss_y}}px;width:150px;height:150px;z-index:2">
+    <span class="bosslife_class" style="position:absolute;left:{{boss.boss_x|add:30}}px;top:{{boss.boss_y}}px;z-index:2;background-color:red;width:80px;height:20px;color:#fff;">{{boss.bosslife}}</span>
+<span class="bossback_class" style="position:absolute;left:{{boss.boss_x|add:30}}px;top:{{boss.boss_y}}px;z-index:5;background-color:#000;width:0px;height:20px;color:#fff;">
 </div>
+{%endfor%}
+<img src="{{imagemap}}" style="z-index:-1;position:absolute;left:0px;top:0px;width:1920px;height:1080px">
 <input type="button" id="goattack_id" value="战场">
 <input type="button" id="exit_id" value="退出">
-<input type="button" id="adventrue_id" value="冒险">
+<input type="button" id="gosleep_id" value="回家">
 <input type="button" id="boss_id" value="BOSS">
 <input type="button" id="menu_id" value="菜单">
 <input type="button" id="goods_id" value="商城">

@@ -17,12 +17,13 @@ class Hero(models.Model):
     hero_id = models.IntegerField()
 
 class Monster(models.Model):
-    monstername = models.CharField(max_length=20)
+    monstername = models.CharField(max_length=50)
     monsterlife = models.IntegerField()
-    monsterfire = models.CharField(max_length=20)
-    monsterbody = models.CharField(max_length=20)
+    monsterfire = models.IntegerField()
+    monsterthings = models.CharField(max_length=50)
     monster_x = models.FloatField()
     monster_y = models.FloatField()
+    hero_id = models.IntegerField()
     imagemap = models.ForeignKey('GameMap',on_delete = models.CASCADE)
 
 class GameMap(models.Model):
@@ -37,12 +38,13 @@ class Build(models.Model):
     buildmap = models.ForeignKey('GameMap',on_delete = models.CASCADE)
 
 class Boss(models.Model):
-    bossname = models.CharField(max_length=20)
+    bossname = models.CharField(max_length=50)
     bosslife = models.IntegerField()
     bossfire = models.IntegerField()
-    bossthings = models.CharField(max_length=20)
+    bossthings = models.CharField(max_length=50)
     boss_x = models.FloatField()
     boss_y = models.FloatField()
+    hero = models.ForeignKey('Hero',on_delete = models.CASCADE)
     bossmap = models.ForeignKey('GameMap',on_delete = models.CASCADE)
 
 class Weapon(models.Model):
@@ -56,7 +58,9 @@ class Skill(models.Model):
     skill_x = models.IntegerField()
     skill_y = models.IntegerField()
     derection = models.CharField(max_length=20)
-    hero = models.ForeignKey("Hero",on_delete = models.CASCADE)
+    map = models.ForeignKey("GameMap",on_delete = models.CASCADE)
+    hero_id = models.IntegerField()
+    myhero = models.ForeignKey("Hero",on_delete = models.CASCADE)
 
 class Chat(models.Model):
     datetime = models.IntegerField()

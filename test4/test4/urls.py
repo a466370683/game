@@ -41,4 +41,9 @@ urlpatterns = [
     path('sleep/addlife/',views.addlife),
     path('sleep/otherhome/',views.otherhome),
     path('sleep/addhomebuild/',views.addhomebuild),
+    path('index/addmonster/',views.addmonster),
+    path('sleep/attack_monster/',views.attack_monster),
+    path('adventrue/',views.adventrue),
+    path('adventrue/goadventrue/',views.goadventrue),
+    path('adventrue/bossattack/',views.bossattack)
 ]

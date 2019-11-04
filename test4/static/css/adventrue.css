@@ -1,10 +1,3 @@
-body{
-position:absolute;
-width:800px;
-height:800px;
-background-color:#502A2A;
-}
-
 #my_hero{
 width:150px;
 height:150px;
@@ -37,7 +30,7 @@ z-index:1;
 color:red;
 }
 
-#adventrue_id{
+#gosleep_id{
 position:absolute;
 width:100px;
 height:30px;
@@ -97,22 +90,4 @@ background-color: rgba(0,0,0,5),
 position:absolute;
 top:160px;
 left:0px,
-}
-
-#befordoor_id{
-position:absolute;
-width:150px;
-height:150px;
-left:350px;
-top:50px;
-z-index:2;
-}
-
-#downdoor_id{
-position:absolute;
-width:150px;
-height:150px;
-left:350px;
-top:650px;
-z-index:2;
 }

@@ -10,6 +10,9 @@ import os
 import re
 import time
 from django.db import transaction
+from django.db.models import Q
+from django.conf import settings
+
 
 #验证装饰器
 def decorator(func):
@@ -36,7 +39,7 @@ def get_my_hero(hero,weapon):
     my_hero['weapon_x'] = weapon.weapon_x
     my_hero['weapon_y'] = weapon.weapon_y
     return my_hero
-
+#获取聊天信息
 def get_chat_list(request):
     try:
         list1 = Chat.objects.filter(label=request.POST['chat_label']).filter(datetime__gt=request.session['datetime']).order_by("-datetime")[:5]
@@ -49,7 +52,7 @@ def get_chat_list(request):
         return chat_list[::-1]
     except Exception as e:
         return ""
-
+#获取家的建筑物
 def get_home(hero_id):
     hero = Hero.objects.get(pk=hero_id)
     #hero_list = Hero.objects.filter(hero_id=hero.id)
@@ -71,6 +74,146 @@ def get_home(hero_id):
         home_list.append(home)
 
     return home_list
+#获取地图子弹
+def get_skill(x,hero_x,map,hero_id):
+    skill_list = []
+    if(hero_id==0):
+        for skill in Skill.objects.filter(map=map):
+            if (skill.derection == ""):
+                if (x > float(hero_x)):
+                    skill.derection = "right"
+                    skill.skillname = skill.skillname[:-4] + 'right.png'
+                else:
+                    skill.derection = "left"
+            if (skill.derection == "right"):
+                skill.skill_x += 30
+            elif (skill.derection == "left"):
+                skill.skill_x -= 30
+            skill.save()
+            item = {}
+            item['skill_id'] = skill.id
+            item['skillname'] = skill.skillname
+            item['skill_x'] = skill.skill_x
+            item['skill_y'] = skill.skill_y
+            skill_list.append(item)
+    else:
+        for skill in Skill.objects.filter(map=map).filter(hero_id=hero_id):
+            if (skill.derection == ""):
+                if (x > float(hero_x)):
+                    skill.derection = "right"
+                    skill.skillname = skill.skillname[:-4] + 'right.png'
+                else:
+                    skill.derection = "left"
+            if (skill.derection == "right"):
+                skill.skill_x += 30
+            elif (skill.derection == "left"):
+                skill.skill_x -= 30
+            skill.save()
+            item = {}
+            item['skill_id'] = skill.id
+            item['skillname'] = skill.skillname
+            item['skill_x'] = skill.skill_x
+            item['skill_y'] = skill.skill_y
+            skill_list.append(item)
+    return skill_list
+
+def get_monster_list(map_id):
+    map = GameMap.objects.get(pk=map_id)
+    monstername_list = ['/static/image/monster/homemonster1.png']
+    for monstername in monstername_list:
+        monster_list = Monster.objects.filter(imagemap=map).filter(monstername=monstername)
+        nowtime = time.time()
+        if(len(monster_list)<10 and len(monster_list)>0):
+            for oldtime in settings.TIME_LIST:
+                if((nowtime-oldtime)>30):
+                    monster = Monster()
+                    monster.monstername = monstername
+                    monster.monsterlife = int(monstername[-5])*1000
+                    monster.monsterfire = int(monstername[-5])*50
+                    monster.monsterthings = ''
+                    monster.monster_x = int(monstername[-5])*400
+                    monster.monster_y = int(monstername[-5])*400
+                    monster.hero_id = 0
+                    monster.imagemap = map
+                    monster.save()
+                    settings.TIME_LIST.remove(oldtime)
+        elif(len(monster_list)==0):
+            post_list = []
+            for i in range(4):
+                for j in range(3):
+                    post_list.append([int(monstername[-5]) * i*150,int(monstername[-5]) *j*150,])
+            for index in range(10):
+                monster = Monster()
+                monster.monstername = monstername
+                monster.monsterlife = int(monstername[-5]) * 1000
+                monster.monsterfire = int(monstername[-5]) * 50
+                monster.monsterthings = ''
+                monster.monster_x = post_list[index][0]
+                monster.monster_y = post_list[index][1]
+                monster.hero_id = 0
+                monster.imagemap = map
+                monster.save()
+
+def get_boss_list(map,hero_list):
+    b_list = []
+    boss_list = Boss.objects.filter(bossmap=map)
+    log_x = random.choice([-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    log_y = random.choice([-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    monster_move_x = int(log_x / ((log_x ** 2 + log_y ** 2) ** 0.5) * 5)
+    monster_move_y = int(log_y / ((log_x ** 2 + log_y ** 2) ** 0.5) * 5)
+    for index,boss in enumerate(boss_list):
+        skillname = ''
+        h = None
+        temp = 1920
+        is_move = True
+        for hero in hero_list:
+            if (abs(hero.hero_x - boss.boss_x) < temp):
+                temp = hero.hero_x
+                h = hero
+        if(abs(h.hero_x - boss.boss_x) <= 400 and abs(h.hero_y - boss.boss_y) <= 400):
+            if (h.hero_x > boss.boss_x):
+                skillname = '/static/image/attackright.png'
+            else:
+                skillname = '/static/image/attack.png'
+        if (abs(h.hero_x - boss.boss_x) <= 400 and abs(h.hero_y - boss.boss_y) <= 400 and h and abs(h.hero_x - boss.boss_x)>150 and abs(h.hero_x - boss.boss_y)>150):
+            if (h.hero_x > boss.boss_x):
+                boss.boss_x += abs(monster_move_x)
+                boss.bossname = '/static/image/monster/boss2.png'
+            else:
+                boss.boss_x -= abs(monster_move_x)
+                boss.bossname = '/static/image/monster/boss1.png'
+            if (h.hero_y > boss.boss_y):
+                boss.boss_y += abs(monster_move_y)
+            else:
+                boss.boss_y -= abs(monster_move_y)
+        elif(abs(h.hero_x - boss.boss_x) > 400 or abs(h.hero_y - boss.boss_y) > 400 and is_move):
+            h = None
+            if(boss.boss_x>int(800*1.5*index+600)):
+                boss.boss_x -= abs(monster_move_x)
+                boss.bossname = '/static/image/monster/boss1.png'
+            elif(boss.boss_x<int(800*1.5*index+600)):
+                boss.boss_x += abs(monster_move_x)
+                boss.bossname = '/static/image/monster/boss2.png'
+            if (boss.boss_y > int(800*1.2*index+600)):
+                boss.boss_y -= abs(monster_move_y)
+            elif(boss.boss_y < int(800*1.2*index+600)):
+                boss.boss_y += abs(monster_move_y)
+        if(abs(boss.boss_x-int(800*1.2*index+600))<300 and abs(boss.boss_y-int(800*1.2*index+600))<300):
+            is_move = False
+        if(is_move==False and h==None):
+            boss.boss_x += monster_move_x
+            boss.boss_y += monster_move_y
+        boss.save()
+        item = {}
+        item['bossname'] = boss.bossname
+        item['bosslife'] = boss.bosslife
+        item['bossfire'] = boss.bossfire
+        item['boss_x'] = boss.boss_x
+        item['boss_y'] = boss.boss_y
+        item['skillname'] = skillname
+        b_list.append(item)
+    return b_list
+
 # Create your views here.
 @decorator
 def index(request):
@@ -119,10 +262,111 @@ def showhero(request):
         her.save()
         x = float(request.POST['x'])
         map = GameMap.objects.get(pk=map_id)
+        boss_list = []
         if(map_id==1):
             hero_list = Hero.objects.filter(imagemap=map)
+            monster_list = []
         elif(map_id==2):
             hero_list = Hero.objects.filter(hero_id=her.hero_id)
+            m_list = Monster.objects.filter(hero_id=her.hero_id)
+            monster_list = []
+            homebuild_list = Home.objects.filter(hero_id=her.hero_id)
+            #10是斜边长度，斜边乘以正弦值就是x
+            for monster in m_list:
+                log_x = random.choice([-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10])
+                log_y = random.choice([-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10])
+                monster_move_x = int(log_x/((log_x**2+log_y**2)**0.5)*10)
+                monster_move_y = int(log_y/((log_x**2+log_y**2)**0.5)*10)
+                monster.monster_x += monster_move_x
+                monster.monster_y += monster_move_y
+                if(monster.monster_x<0):
+                    monster.monster_x = 0
+                if (monster.monster_x > 800):
+                    monster.monster_x = 800
+                if (monster.monster_y < 0):
+                    monster.monster_y = 0
+                if (monster.monster_y > 800):
+                    monster.monster_y = 800
+                for homebuild in homebuild_list:
+                    if(monster.monster_x>homebuild.homebuild_x-150 and monster.monster_x>homebuild.homebuild_x+homebuild.homewidth and monster.monster_y>homebuild.homebuild_y-150 and monster.monster_y<homebuild.homebuild_y+homebuild.homeheight):
+                        if(log_x>0):
+                            monster.monster_x -= 20
+                        if(log_y>0):
+                            monster.monster_y -= 20
+                        if (log_x < 0):
+                            monster.monster_x += 20
+                        if (log_y < 0):
+                            monster.monster_y += 20
+                monster.save()
+                item = {}
+                item['monstername'] = monster.monstername
+                item['monsterlife'] = monster.monsterlife
+                item['monsterfire'] = monster.monsterfire
+                item['monster_x'] = monster.monster_x
+                item['monster_y'] = monster.monster_y
+                item['id'] = monster.id
+                monster_list.append(item)
+        elif(map_id==3):
+            hero_list = Hero.objects.filter(imagemap=map)
+            monster_list = []
+            get_monster_list(map_id)
+            m_list = Monster.objects.filter(imagemap=map)
+            post_list = []
+            for i in range(4):
+                for j in range(3):
+                    post_list.append([int(1 * i * 150), int(1 * j * 150)])
+            for index,monster in enumerate(m_list):
+                log_x = random.choice([-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10])
+                log_y = random.choice([-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10])
+                monster_move_x = int(log_x/((log_x**2+log_y**2)**0.5)*5)
+                monster_move_y = int(log_y/((log_x**2+log_y**2)**0.5)*5)
+                is_move = True
+                h = None
+                h_label = True
+                temp = 1920
+                for hero in hero_list:
+                    if(monster.monster_x>hero.hero_x-150 and monster.monster_x<hero.hero_x+150 and monster.monster_y>hero.hero_y-150 and monster.monster_y<hero.hero_y+150):
+                        hero.herolife -= int(monster.monsterfire/50)
+                        hero.save()
+                    if(abs(hero.hero_x-monster.monster_x)<temp):
+                        temp = hero.hero_x
+                        h = hero
+                if(abs(h.hero_x-monster.monster_x)<=300 and abs(h.hero_y-monster.monster_y)<=300 and h):
+                    if(h.hero_x>monster.monster_x):
+                        monster.monster_x += abs(monster_move_x)
+                    else:
+                        monster.monster_x -= abs(monster_move_x)
+                    if(h.hero_y>monster.monster_y):
+                        monster.monster_y += abs(monster_move_y)
+                    else:
+                        monster.monster_y -= abs(monster_move_y)
+                elif(abs(h.hero_x-monster.monster_x)>300 or abs(h.hero_y-monster.monster_y)>300 and is_move):
+                    h_label = False
+                    if(monster.monster_x>post_list[index][0]):
+                        monster.monster_x -= abs(monster_move_x)
+                    elif(monster.monster_x<post_list[index][0]):
+                        monster.monster_x += abs(monster_move_x)
+                    if (monster.monster_y > post_list[index][1]):
+                        monster.monster_y -= abs(monster_move_y)
+                    elif (monster.monster_y < post_list[index][1]):
+                        monster.monster_y += abs(monster_move_y)
+                if(abs(monster.monster_x-post_list[index][0])<100 and abs(monster.monster_y-post_list[index][1])<100):
+                    is_move = False
+
+                if(is_move==False and h_label==False):
+                    monster.monster_x += monster_move_x
+                    monster.monster_y += monster_move_y
+                monster.save()
+                item = {}
+                item['monstername'] = monster.monstername
+                item['monsterlife'] = monster.monsterlife
+                item['monsterfire'] = monster.monsterfire
+                item['monster_x'] = monster.monster_x
+                item['monster_y'] = monster.monster_y
+                item['id'] = monster.id
+                monster_list.append(item)
+            boss_list = get_boss_list(map,hero_list)
+
         my_weapon = Weapon.objects.get(hero=her)
         path = my_weapon.weaponname
         fire_patter = re.compile("z")
@@ -149,26 +393,8 @@ def showhero(request):
         my_weapon.save()
         my_hero = get_my_hero(her,my_weapon)
         chat_list = get_chat_list(request)
-        skill_list = []
-        for skill in Skill.objects.all():
-            if (skill.derection==""):
-                if(x>float(hero_x)):
-                    skill.derection = "right"
-                    skill.skillname = skill.skillname[:-4]+'right.png'
-                else:
-                    skill.derection = "left"
-            if(skill.derection=="right"):
-                skill.skill_x += 6
-            elif(skill.derection=="left"):
-                skill.skill_x -= 6
-            skill.save()
-            item = {}
-            item['skill_id'] = skill.id
-            item['skillname'] = skill.skillname
-            item['skill_x'] = skill.skill_x
-            item['skill_y'] = skill.skill_y
-            skill_list.append(item)
-
+        hero_id = her.hero_id
+        skill_list = get_skill(x,her.hero_x,map,hero_id)
         list2 = []
         for hero in hero_list:
             if hero.id != her.id:
@@ -185,7 +411,7 @@ def showhero(request):
             #     if hero.herolife < 1000:
             #         hero.herolife += 1
             #         hero.save()
-        return JsonResponse({'hero_list':list2,'my_hero':my_hero,'error':'no error','map_id':map_id,'skill_list':skill_list,'chat_list':chat_list})
+        return JsonResponse({'hero_list':list2,'my_hero':my_hero,'error':'no error','map_id':map_id,'skill_list':skill_list,'chat_list':chat_list,'monster_list':monster_list,'boss_list':boss_list})
     except Exception as e:
         print(e)
         return JsonResponse({'error':'error'})
@@ -298,16 +524,20 @@ def loginverify(request):
     hero = Hero.objects.get(username=username)
     map = GameMap.objects.get(pk=1)
     map2 = GameMap.objects.get(pk=2)
+    map3 = GameMap.objects.get(pk=3)
     if hero.imagemap==map:
         return redirect("http://127.0.0.1:8000/index/")
     elif hero.imagemap==map2:
         return redirect("http://127.0.0.1:8000/sleep/")
+    elif hero.imagemap==map3:
+        return redirect("http://127.0.0.1:8000/adventrue/")
 
 @decorator
 def sleep(request):
     #list = range(0,10000,300)
     map = GameMap.objects.get(pk=2)
     hero = Hero.objects.get(username=request.session['username'])
+    monster_list = Monster.objects.filter(hero_id=hero.hero_id)
     goods_label = 0
     if(hero.id==hero.hero_id):
         goods_label = 1
@@ -325,7 +555,7 @@ def sleep(request):
             h = get_my_hero(hero,weapon)
             hero_list.append(h)
     home_list = get_home(target_hero.id)
-    return render(request, 'game/sleep.html', {'hero_list': hero_list, 'map': map.imagemap,'username':request.session["username"],'home_list':home_list,'goods_label':goods_label})
+    return render(request, 'game/sleep.html', {'hero_list': hero_list, 'map': map.imagemap,'username':request.session["username"],'home_list':home_list,'goods_label':goods_label,'monster_list':monster_list})
 
 @decorator
 def gosleep(request):
@@ -335,6 +565,7 @@ def gosleep(request):
     hero.hero_x = home.homebuild_x-150
     hero.hero_y = home.homebuild_y-150
     hero.imagemap = map
+    hero.hero_id = hero.id
     hero.save()
     return HttpResponse("去加血")
 
@@ -353,6 +584,7 @@ def goattack(request):
         if(hero.hero_x>build.build_x-150 and hero.hero_x<build.build_x+150 and hero.hero_y>build.build_y-150 and hero.hero_y<build.build_y+150):
             hero.hero_x = build.build_x - 150
             hero.hero_y = build.build_y - 150
+    hero.hero_id = 0
     hero.save()
     return HttpResponse("去战场")
 
@@ -385,7 +617,10 @@ def attackgun(request):
     hero = Hero.objects.get(username=request.session['username'])
     skill = Skill()
     skill.skillname = request.POST['skillname']
-    skill.hero = hero
+    skill.hero_id = hero.hero_id
+    skill.myhero = hero
+    map = GameMap.objects.get(pk=int(request.POST['map_id']))
+    skill.map = map
     if(float(x)>float(hero.hero_x)):
         skill.derection = "right"
         skill.skillname = "/static/image/attackright.png"
@@ -427,11 +662,11 @@ def chat(request):
 
 def addlife(request):
     hero = Hero.objects.get(username=request.session['username'])
-    home = Home.objects.get(hero=hero)
+    home = Home.objects.filter(hero=hero)[0]
     if(hero.hero_x>home.homebuild_x-150 and hero.hero_x<home.homebuild_x+150 and hero.hero_y>home.homebuild_y-150 and hero.hero_y<home.homebuild_y + 150):
-        hero.herolife += 1
-        if(hero.herolife>=1000):
-            hero.herolife = 1000;
+        hero.herolife += 10
+        if(hero.herolife>=int(1000*hero.herolevel*0.1+1000)):
+            hero.herolife = int(1000*hero.herolevel*0.1+1000);
     hero.save()
     return HttpResponse("加血成功")
 
@@ -468,3 +703,68 @@ def addhomebuild(request):
     home.homebuild = request.POST['homebuild']
     home.hero = hero
     home.save()
+
+def addmonster(request):
+    hero = Hero.objects.get(username=request.session['username'])
+    map = GameMap.objects.get(pk=int(request.POST['map_id']))
+    monster = Monster()
+    monster.monstername = '/static/image/monster/homemonster.png'
+    monster.monsterlife = 500
+    monster.monsterfire = 10
+    monster.monsterbody = ''
+    monster.monster_x = request.POST['monster_x']
+    monster.monster_y = request.POST['monster_y']
+    monster.imagemap = map
+    monster.hero_id = hero.id
+    monster.save()
+    return HttpResponse('1')
+
+def attack_monster(request):
+    skill_id = request.POST['skill_id']
+    monster_id = request.POST['monster_id']
+    str_level = '1'
+    kill_monster_label = '0'
+    skill = Skill.objects.get(pk=int(skill_id))
+    myhero = skill.myhero
+    skill.delete()
+    monster = Monster.objects.get(id=int(monster_id))
+    monster.monsterlife -= 200*int(myhero.herolevel)*0.1+200
+    if(monster.monsterlife<=0):
+        hero = Hero.objects.get(pk=skill.myhero_id)
+        hero.experience += 200
+        if (hero.experience >= hero.herolevel * 1000):
+            hero.herolevel += 1
+            hero.experience = 0
+            str_level = '升级了:Lv' + str(hero.herolevel)
+            hero.herolife = int(hero.herolevel*1000*0.1)+1000
+        settings.TIME_LIST.append(time.time())
+        hero.save()
+        monster.delete()
+        kill_monster_label = '1'
+    else:
+        monster.save()
+    return JsonResponse({'str_level':str_level,'kill_monster_label':kill_monster_label})
+
+def adventrue(request):
+    map = GameMap.objects.get(pk=3)
+    hero_list = Hero.objects.filter(imagemap=map)
+    monster_list = Monster.objects.filter(imagemap=map)
+    boss_list = Boss.objects.filter(bossmap=map)
+    return render(request,'game/adventrue.html',{'hero_list':hero_list,'imagemap':map.imagemap,'monster_list':monster_list,'boss_list':boss_list})
+
+def goadventrue(request):
+    hero = Hero.objects.get(username=request.session['username'])
+    map = GameMap.objects.get(pk=3)
+    hero.imagemap = map
+    hero.hero_x = 200
+    hero.hero_y = 200
+    hero.hero_id = 0
+    hero.save()
+    return HttpResponse('1')
+
+def bossattack(request):
+    hero = Hero.objects.get(username=request.session['username'])
+    boss = Boss.objects.get(pk=int(request.POST['boss_id']))
+    hero.herolife -= boss.bossfire
+    hero.save()
+    return HttpResponse('1')

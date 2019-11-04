@@ -1,6 +1,6 @@
 window.onload = function(){
     /*步长*/
-	var stride = 1;
+	var stride = 5;
 	/*英雄横纵坐标*/
 	var hero_x = parseFloat($(".my_hero_class").css("left"));
 	var hero_y = parseFloat($(".my_hero_class").css("top"));
@@ -93,7 +93,9 @@ window.onload = function(){
 	function setmenupost(obj,menu_x)
 	{
 	menu_x = menu_x*window.innerWidth;
-	var menu_x = parseFloat(menu_x + scroll_x);
+	var s_x = scroll_x -100
+	if(s_x<=0){s_x=0;}
+	var menu_x = parseFloat(menu_x + s_x);
 	var menu_y = parseFloat(scroll_y);
     obj.css("left",menu_x);
     obj.css("top",menu_y)
@@ -116,7 +118,7 @@ window.onload = function(){
 	    /*自己被伤害显示自动消失*/
 	    if(my_attack_label==1){
 	    my_attack_num += 1;
-	    if(my_attack_num==50){
+	    if(my_attack_num==10){
 	    my_attack_label = 0;
 	    my_attack_num = 0;
 	    $(".my_attack_class").remove();
@@ -185,7 +187,7 @@ window.onload = function(){
 	    });
 	    /*让武器延迟换回并清楚技能语句*/
         if(gun_label==1){gun_num = gun_num + 1;
-	    if(gun_num==50){gun_num=0;gun_label=0;
+	    if(gun_num==10){gun_num=0;gun_label=0;
 	        $.ajax({
             	url: 'changegun/',
             	type: 'post',
@@ -200,7 +202,7 @@ window.onload = function(){
 	    }};
 	    /*让打中人后的伤害值延迟消失*/
 	    if(attack_label==1){num = num + 1;
-	    if(num==50){$(".attack_class").remove();num=0;attack_label=0;}};
+	    if(num==10){$(".attack_class").remove();num=0;attack_label=0;}};
 
 	/*刷新主要请求数据获取*/
 	    if($("title").text()!=""){
@@ -356,10 +358,10 @@ window.onload = function(){
         });}
 	
         /*settimeout实现刷新*/
-	    mytime = setTimeout(arguments.callee,20)
+	    mytime = setTimeout(arguments.callee,100)
     };
     /*屏幕刷新*/
-	var mytime = setTimeout(showhero,20);
+	var mytime = setTimeout(showhero,100);
 
     /*----------------------------以下为事件区----------------------------*/
     /*按键事件，不能同时按键*/
@@ -400,7 +402,6 @@ window.onload = function(){
             	url: 'changegun/',
             	type: 'post',
             	data: {
-                username:$("title").text(),
                 label:label,
             	},
             	success: function (data) {
@@ -414,9 +415,9 @@ window.onload = function(){
             	type: 'post',
             	data: {
                 skillname:'/static/image/attack.png',
-                username:$("title").text(),
                 x:x,
                 y:y,
+                map_id:'1',
             	},
             	success: function (data) {
 
