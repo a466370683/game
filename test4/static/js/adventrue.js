@@ -4,7 +4,7 @@ window.onload = function(){
     /*创建怪物的时间*/
     var start_time = 0;
 	/*步长*/
-	var stride = 10;
+	var stride = 15;
 	/*英雄横纵坐标*/
 	var hero_x = parseFloat($(".my_hero_class").css("left"));
 	var hero_y = parseFloat($(".my_hero_class").css("top"));
@@ -30,7 +30,18 @@ window.onload = function(){
 	/*移动变量*/
 	var x = parseFloat($(".my_hero_class").css("left"));
 	var y = parseFloat($(".my_hero_class").css("top"));
+	/*键盘移动控制*/
+	var move_right = false;
+	var move_left = false;
+	var move_up = false;
+	var move_down = false;
 	var now_skill_time = 0;
+	/*拖拽物品*/
+	var Is_move = false;
+	/*替换前位置*/
+	var replace_x = 0;
+	var replace_y = 0;
+	var replace_img = null;
     /*移动函数*/
 	function auto_move(){
 	    var scale_x = Math.pow(Math.pow(x-hero_x,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
@@ -80,9 +91,42 @@ window.onload = function(){
     obj.css("left",menu_x);
     obj.css("top",menu_y)
 	}
+	/*设置背包位置*/
+	function setpackpost(obj,menu_x,menu_y)
+	{
+	menu_x = menu_x*window.innerWidth;
+	var s_x = scroll_x -100
+	if(s_x<=0){s_x=0;}
+	var menu_x = parseFloat(menu_x + s_x);
+	var menu_y = parseFloat(scroll_y+menu_y);
+    obj.css("left",menu_x);
+    obj.css("top",menu_y)
+	}
+	/*打死BOSS显示武器*/
+	function show_weapon(thing)
+	{
+	        var weapon_str = '<img class="boss_things_class" src="'+thing.weaponname+'" style="position:absolute;z-index:5;left:'+thing.weapon_x+'px;top:'+thing.weapon_y+'px;width:30px;height:50px;">';
+	        $("body").prepend(weapon_str);
+	}
 	function showhero()
 	{
 	    /*跑图功能*/
+	    if(move_left)
+	    {
+	        x = hero_x - 20;
+	    }
+	    if(move_right)
+	    {
+	        x = hero_x + 20;
+	    }
+	    if(move_up)
+	    {
+	        y = hero_y - 20;
+	    }
+	    if(move_down)
+	    {
+	        y = hero_y + 20;
+	    }
 	    auto_move();
 	    auto_scroll();
 	    /*聊天设置*/
@@ -94,6 +138,8 @@ window.onload = function(){
 	    setmenupost($("#boss_id"),0.45)
 	    setmenupost($("#menu_id"),0)
 	    setmenupost($("#goods_id"),0.6)
+	    setpackpost($("#pack_id"),0.2,200)
+	    setpackpost($("#select_yes_id"),0.39,500)
 	    /*自己被伤害显示自动消失*/
 	    if(my_attack_label==1){
 	    my_attack_num += 1;
@@ -119,7 +165,7 @@ window.onload = function(){
             var gun = $(this);
             var attack_left = parseFloat($(this).css("left"));
             var attack_top = parseFloat($(this).css("top"));
-            if(attack_left<=0||attack_left>=1850)
+            if(attack_left<=0||attack_left>=1700)
             {
                 gun.remove();
                 $.ajax
@@ -149,10 +195,10 @@ window.onload = function(){
                         },
                         success: function (data)
                         {
-                            if(data.str_level!='1')
+                            if(data!='1')
                             {
                                 level_label = 1;
-                                str_level = '<span id="level_label_id" style="position:absolute;left:'+parseFloat(parseFloat($(".my_hero_class").css("left"))+40)+'px;top:'+parseFloat(parseFloat($(".my_hero_class").css("top"))+40)+'px;z-index:'+im_index.toString()+';width:150px;height:20px;color:red;z-index:5">'+data.str_level+'</span>';
+                                str_level = '<span id="level_label_id" style="position:absolute;left:'+parseFloat(parseFloat($(".my_hero_class").css("left"))+40)+'px;top:'+parseFloat(parseFloat($(".my_hero_class").css("top"))+40)+'px;z-index:'+im_index.toString()+';width:150px;height:20px;color:red;z-index:5">'+data+'</span>';
                                 $('body').prepend(str_level)
                             }
                         },
@@ -161,7 +207,42 @@ window.onload = function(){
                 };
                 gun.remove();
             });
-	    /*子弹打中人物处理*/
+            /*子弹打中BOSS处理*/
+            $(".boss_class").each(function(index){
+                var boss = $(this)
+                if(attack_left>parseFloat($(this).find('img').css("left"))-parseFloat(gun.css('width'))&&attack_left<parseFloat($(this).find('img').css("left"))+parseFloat($(this).find('img').css("width"))&&attack_top>parseFloat($(this).find('img').css("top"))-parseFloat(gun.css('height'))&&attack_top<parseFloat($(this).find('img').css("top"))+parseFloat($(this).find('img').css("height")))
+                    {
+                    $.ajax({
+                        url: 'attack_boss/',
+                        type: 'post',
+                        data: {
+                        skill_id:gun.attr("alt"),
+                        boss_id:$(this).attr('id'),
+                        map_id:'3',
+                        },
+                        success: function (data)
+                        {
+                            if(data.boss_str!='1')
+                            {
+                                if(data.thing)
+                                {
+                                    show_weapon(data.thing);
+                                }
+                                if(data.boss_str!='2')
+                                {
+                                    level_label = 1;
+                                    str_level = '<span id="level_label_id" style="position:absolute;left:'+parseFloat(parseFloat($(".my_hero_class").css("left"))+40)+'px;top:'+parseFloat(parseFloat($(".my_hero_class").css("top"))+40)+'px;z-index:'+im_index.toString()+';width:150px;height:20px;color:red;z-index:5">'+data.level_str+'</span>';
+                                    $('body').prepend(str_level)
+                                }
+                                boss.remove()
+                            }
+                        },
+                    });
+                    return false
+                };
+                gun.remove();
+            });
+	        /*子弹打中人物处理*/
             $(".hero_class").each(function(index){
                 if(attack_left>parseFloat($(this).css("left"))-parseFloat(gun.css('width'))&&attack_left<parseFloat($(this).css("left"))+parseFloat($(this).css("width"))&&attack_top>parseFloat($(this).css("top"))-parseFloat(gun.css('top'))&&attack_top<parseFloat($(this).css("top"))+parseFloat($(this).css("height")))
                 {
@@ -229,6 +310,20 @@ window.onload = function(){
 		        y:y,
 		        },
             success: function (data) {
+            if(data.boss_show_label=='1')
+            {
+                if(data.boss_list.length>0)
+                {
+                    for(var i=0;i<data.boss_list.length;i++)
+                    {
+                        var boss_str = '<div class="boss_class" id="'+data.boss_list[i].id+'">'
+                        boss_str += ' <img src="'+data.boss_list[i].bossname+'" style="position:absolute;left:'+data.boss_list[i].boss_x+'px;top:'+data.boss_list[i].boss_y+'px;width:150px;height:150px;z-index:2">';
+                        boss_str += '<span class="bosslife_class" style="position:absolute;left:'+parseFloat(data.boss_list[i].boss_x+30)+'px;top:'+data.boss_list[i].boss_y+'px;z-index:2;background-color:red;width:80px;height:20px;color:#fff;">'+data.boss_list[i].bosslife+'</span>';
+                        boss_str += '<span class="bossback_class" style="position:absolute;left:'+parseFloat(data.boss_list[i].boss_x+30)+'px;top:'+data.boss_list[i].boss_y+'px;z-index:5;background-color:#000;width:0px;height:20px;color:#fff;"></div>';
+                        $("body").prepend(boss_str)
+                    }
+                }
+            }
             if(data.error=="error"){window.location.href="http://127.0.0.1:8000/login/";};
 		/*if(data.error=='error'){clearTimeout(mytime);window.location.href="http://127.0.0.1:8000/login/"};*/
 
@@ -402,7 +497,7 @@ window.onload = function(){
             /*移动BOSS*/
             for(var i=0;i<data.boss_list.length;i++)
             {
-                var back_x = ((parseFloat(data.monster_list[i].bosslife))/1000)*80;
+                var back_x = ((parseFloat(data.boss_list[i].bosslife))/20000)*80;
                 $(".boss_class").eq(i).find("img").attr('src',data.boss_list[i].bossname)
                 $(".boss_class").eq(i).find("img").css('left',data.boss_list[i].boss_x);
                 $(".boss_class").eq(i).find("img").css('top',data.boss_list[i].boss_y);
@@ -431,7 +526,7 @@ window.onload = function(){
                         var will_skill_time = new Date().getTime();
                         if((will_skill_time - now_skill_time)>1000)
                         {
-                            boss_skill_str = '<img class="boss_skill_class" src="'+data.boss_list[i].skillname+'" style="position:absolute;left:'+boss_skill_post+'px;top:'+parseFloat(parseFloat($(".boss_class").eq(i).find("img").css("top"))-10)+'px;width:200px;height:120px;z-index:5;" alt="'+$(".boss_class").eq(i).attr('id')+'">';
+                            boss_skill_str = '<img class="boss_skill_class" src="'+data.boss_list[i].skillname+'" style="position:absolute;left:'+boss_skill_post+'px;top:'+parseFloat(parseFloat($(".boss_class").eq(i).find("img").css("top"))-10)+'px;width:200px;height:130px;z-index:5;" alt="'+$(".boss_class").eq(i).attr('id')+'">';
                             $("body").append(boss_skill_str);
                             now_skill_time = 0;
                         }
@@ -441,6 +536,7 @@ window.onload = function(){
             $(".boss_skill_class").each(function()
             {
                 var skill_patter = /right/;
+                var boss_skill = $(this)
                 var boss_skill_left = parseFloat($(this).css('left'));
                 var boss_skill_top = parseFloat($(this).css('top'));
                 if(skill_patter.test($(this).attr('src')))
@@ -457,7 +553,7 @@ window.onload = function(){
 
                 var hero_left = parseFloat($(".my_hero_class").css('left'));
                 var hero_top = parseFloat($(".my_hero_class").css('top'));
-                if(boss_skill_left>hero_left-200&&boss_skill_left<hero_left+150&&boss_skill_top>hero_top-120&&boss_skill_top<hero_top+150)
+                if(boss_skill_left>hero_left-200&&boss_skill_left<hero_left+150&&boss_skill_top>hero_top-130&&boss_skill_top<hero_top+150)
                 {
                     $.ajax
                     ({
@@ -473,6 +569,28 @@ window.onload = function(){
                     });
                 $(this).remove()
                 }
+                $(".hero_class").each(function()
+                {
+                    var hero_left = parseFloat($(this).css('left'));
+                    var hero_top = parseFloat($(this).css('top'));
+                    if(boss_skill_left>hero_left+(-200)&&boss_skill_left<hero_left+150&&boss_skill_top>hero_top+(-130)&&boss_skill_top<hero_top+150)
+                    {
+                        $.ajax
+                        ({
+                            url: 'bossattack/',
+                            type: 'post',
+                            data:
+                            {
+                                boss_id:boss_skill.attr("alt"),
+                                heroname:$(this).siblings(".heroname_class").text(),
+                            },
+                            success: function (data)
+                            {
+                            },
+                        });
+                    boss_skill.remove()
+                    }
+                })
             })
             /*动态添加删除内容进入页面*/
             $("ul li").remove();
@@ -516,6 +634,15 @@ window.onload = function(){
 	    e.stopPropagation();
 	});
 	$('.image_goods_class').click(function(e){
+	    e.stopPropagation();
+	});
+	$('table').click(function(e){
+	    e.stopPropagation();
+	});
+	$("#yes_id").click(function(e){
+	    e.stopPropagation();
+	});
+	$("#no_id").click(function(e){
 	    e.stopPropagation();
 	});
 	/*点击退出按钮后退出当前用户*/
@@ -576,10 +703,75 @@ window.onload = function(){
         	});
 		/*$	("#herolife_id").attr('style','position:absolute;left:'+parseFloat(hero_x).toString()+'px;top:'+parseFloat(hero_y-50).toString()+'px;background-color:red;width:150;height:50;text-align:center');*/
 	});
+
 	$("body").keydown(function(e){
+        switch(e.keyCode)
+        {
+            case 65:
+            move_left = true
+            break;
+            case 68:
+            move_right = true
+            break;
+            case 83:
+            move_down = true
+            break;
+            case 87:
+            move_up = true
+            break;
+            case 66:
+            $("#pack_id").toggle();
+            break;
+            case 90:
+            if($(".boss_things_class").length>0)
+            {
+                $(".boss_things_class").each(function()
+                {
+                    var thing = $(this)
+                    var t_left = parseFloat($(this).css("left"));
+                    var t_top = parseFloat($(this).css("top"));
+                    var t_width = parseFloat($(this).css("width"));
+                    var t_height = parseFloat($(this).css("height"));
+                    if(hero_x>t_left-150&&hero_x<t_left+t_width&&hero_y>t_top-150&&hero_y<t_top+t_height)
+                    {
+                        $.ajax
+                        ({
+                            url: 'addthings/',
+                            type: 'post',
+                            data:
+                            {
+                                weaponname:$(this).attr("src"),
+                            },
+                            success: function (data)
+                            {
+                                if(data)
+                                {
+                                    $("tr").each(function(i)
+                                    {
+                                        $(this).find("td").each(function(j)
+                                        {
+                                            if(i-1==parseInt(data.item.weapon_y)&&j==parseInt(data.item.weapon_x))
+                                            {
+                                                $(this).css('background-color','#00a9d766')
+                                                var pack_str = '<img src="'+data.item.weaponname+'" style="width:30px;height:50px">';
+                                                $(this).prepend(pack_str);
+                                                return false;
+                                            }
+                                        })
+                                    })
+                                    thing.remove()
+                                }
+                            },
+                        });
+                    }
+                })
+            }else
+            {
+                break;
+            }
+	    }
 	    if(gun_num==0){
 		switch(e.which){
-
 		case 81:
 		var label = "3";
 		/*按键同时更换武器*/
@@ -613,4 +805,203 @@ window.onload = function(){
 		gun_label = 1;
 		};}else{e.preventDefault();};
 	});
+	$("body").keyup(function(e){
+        switch(e.keyCode)
+        {
+            case 65:
+            move_left = false
+            break;
+            case 68:
+            move_right = false
+            break;
+            case 83:
+            move_down = false
+            break;
+            case 87:
+            move_up = false
+            break;
+	    }
+	})
+	/*table拖拽物品*/
+	$("td").bind('mousedown',function()
+	{
+	    $(this).css('background-color','#a57171')
+	    replace_img = $(this).find("img");
+	    replace_x = $(this).index();
+	    replace_y = $(this).parent().index();
+        Is_move = true
+    })
+    $("td").bind('mousemove',function(e)
+    {
+        if(Is_move)
+        {
+            var h_x = e.pageX;
+            var h_y = e.pageY;
+            $(this).css('left',h_x);
+            $(this).css('top',h_y);
+        }
+    })
+     $("body").bind('mouseup',function(e)
+     {
+        if(replace_img==null)
+        {
+            return false;
+        }else
+        {
+            if(e.pageX<parseFloat($("table").css("left"))||e.pageX>parseFloat($("table").css("left"))+parseFloat($("table").css("width"))||e.pageY<parseFloat($("table").css("top"))||e.pageY>parseFloat($("table").css("top"))+parseFloat($("table").css("height")))
+            {
+                $("#select_yes_id").show()
+            }
+        }
+     })
+    $("td").bind('mouseup',function(e)
+    {
+        var table_x = parseFloat($("table").css("left"));
+        var table_y = parseFloat($("table").css("top"));
+        var table_width = parseFloat($("table").css("width"));
+        var table_height = parseFloat($("table").css("height"));
+        var td_x = parseFloat($(this).css("left"));
+        var td_y = parseFloat($(this).css("top"));
+        var td_width = parseFloat($(this).css("width"));
+        var td_height = parseFloat($(this).css("height"));
+        if(td_x>table_x&&td_x<table_x+table_width&&td_y>table_y&&td_y<table_y+table_height)
+        {
+            $("tr").each(function(i)
+            {
+                $(this).find("td").each(function(j)
+                {
+                    var this_x = parseFloat($(this).offset().left);
+                    var this_y = parseFloat($(this).offset().top);
+                    var this_width = parseFloat($(this).css("width"));
+                    var this_height = parseFloat($(this).css("height"));
+                    if(td_x>this_x&&td_x<this_x+this_width&&td_y>this_y&&td_y<this_y+this_height)
+                    {
+                        if(i-1==replace_y-1&&j==replace_x)
+                        {
+                            replace_img.parent().css('background-color','#00a9d766')
+                            return false
+                        }
+                        if($(this).find("img").length>0)
+                        {
+                             $.ajax
+                            ({
+                                url: 'replacethings/',
+                                type: 'post',
+                                data:
+                                {
+                                    label:'1',
+                                    i:i-1,
+                                    j:j,
+                                    replace_x:replace_x,
+                                    replace_y:replace_y,
+                                },
+                                success: function (data)
+                                {
+                                    if(data)
+                                    {
+                                        $("tr").each(function(i)
+                                        {
+                                            $(this).find("td").each(function(j)
+                                            {
+                                                if(i-1==parseInt(data.item.weapon_y)&&j==parseInt(data.item.weapon_x)||i-1==parseInt(data.item2.weapon_y)&&j==parseInt(data.item2.weapon_x))
+                                                {
+                                                    $(this).find("img").remove();
+                                                }
+                                            })
+                                        })
+                                        $("tr").each(function(i)
+                                        {
+                                            $(this).find("td").each(function(j)
+                                            {
+                                                if(i-1==parseInt(data.item.weapon_y)&&j==parseInt(data.item.weapon_x))
+                                                {
+                                                    $(this).css('background-color','#00a9d766')
+                                                    var pack_str = '<img src="'+data.item.weaponname+'" style="width:30px;height:50px">';
+                                                    $(this).prepend(pack_str);
+                                                    return false;
+                                                }
+                                            })
+                                        })
+                                        $("tr").each(function(i)
+                                        {
+                                            $(this).find("td").each(function(j)
+                                            {
+                                                if(i-1==parseInt(data.item2.weapon_y)&&j==parseInt(data.item2.weapon_x))
+                                                {
+                                                    $(this).css('background-color','#00a9d766')
+                                                    var pack_str = '<img src="'+data.item2.weaponname+'" style="width:30px;height:50px">';
+                                                    $(this).prepend(pack_str);
+                                                    return false;
+                                                }
+                                            })
+                                        })
+                                    }
+                                },
+                            });
+                        }else
+                        {
+                            $.ajax
+                            ({
+                                url: 'replacethings/',
+                                type: 'post',
+                                data:
+                                {
+                                    label:'0',
+                                    i:i-1,
+                                    j:j,
+                                    replace_x:replace_x,
+                                    replace_y:replace_y,
+                                },
+                                success: function (data)
+                                {
+                                    if(data)
+                                    {
+                                        $("tr").each(function(i)
+                                        {
+                                            $(this).find("td").each(function(j)
+                                            {
+                                                if(i-1==parseInt(data.item.weapon_y)&&j==parseInt(data.item.weapon_x))
+                                                {
+                                                    $(this).css('background-color','#00a9d766')
+                                                    var pack_str = '<img src="'+data.item.weaponname+'" style="width:30px;height:50px">';
+                                                    $(this).prepend(pack_str);
+                                                    return false;
+                                                }
+                                            })
+                                        })
+                                    }
+                                },
+                            });
+                            replace_img.remove()
+                        }
+                    }
+                })
+            })
+        }
+        Is_move = false;
+    })
+    $("#yes_id").click(function()
+    {
+        yes_click = $(this)
+        $.ajax
+        ({
+            url: 'deleteimg/',
+            type: 'post',
+            data:
+            {
+                i:replace_y,
+                j:replace_x,
+            },
+            success: function (data)
+            {
+                replace_img.remove();
+                yes_click.parent().hide();
+                replace_img=null;
+            },
+        });
+    })
+    $("#no_id").click(function()
+    {
+        $("#select_yes_id").hide();
+    })
 }

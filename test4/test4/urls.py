@@ -45,5 +45,9 @@ urlpatterns = [
     path('sleep/attack_monster/',views.attack_monster),
     path('adventrue/',views.adventrue),
     path('adventrue/goadventrue/',views.goadventrue),
-    path('adventrue/bossattack/',views.bossattack)
+    path('adventrue/bossattack/',views.bossattack),
+    path('adventrue/attack_boss/',views.attack_boss),
+    path('adventrue/addthings/',views.addthings),
+    path('adventrue/replacethings/',views.replacethings),
+    path('adventrue/deleteimg/',views.deleteimg)
 ]

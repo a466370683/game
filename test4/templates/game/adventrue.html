@@ -8,6 +8,24 @@
     <title>Title</title>
 </head>
 <body>
+<div id="select_yes_id" style="position:absolute;z-index:11;width:150px;height:80px;font-size:30px">
+    <span>是否要丢掉</span>
+    <button id="yes_id">是</button>&nbsp&nbsp<button id="no_id">否</button>
+</div>
+<table id="pack_id">
+    <th colspan="8" style="font-size:30px;">背包</th>
+    {% for row in pack_list %}
+  <tr>
+      {% for column in row %}
+      {%if column == 0 %}
+      <td style="width:30px;height:50px"></td>
+      {%else%}
+    <td style="background-color:#00a9d766"><img src="{{column}}" style="width:30px;height:50px"></td>
+      {%endif%}
+      {%endfor%}
+  </tr>
+   {%endfor%}
+</table>
 {%for monster in monster_list%}
 <div class="monster_class" id="{{monster.id}}">
     <img src="{{monster.monstername}}" style="position:absolute;left:{{monster.monster_x}}px;top:{{monster.monster_y}}px;width:150px;height:150px;z-index:2">

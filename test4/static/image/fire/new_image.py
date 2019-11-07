@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-path = "level_fire_7.png"
+path = "level_fire_5.png"
 image = cv2.imread(path,0)
 image_new = cv2.imread(path)
 

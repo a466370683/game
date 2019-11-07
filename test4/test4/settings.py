@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-
+import numpy as np
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -53,6 +53,8 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'test4.urls'
 
 TIME_LIST = []
+BOSS_TIME = 0
+PACK_LIST = np.zeros((8,8))
 
 TEMPLATES = [
     {

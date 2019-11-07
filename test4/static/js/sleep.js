@@ -30,6 +30,11 @@ window.onload = function(){
 	/*移动变量*/
 	var x = parseFloat($(".my_hero_class").css("left"));
 	var y = parseFloat($(".my_hero_class").css("top"));
+	/*键盘移动控制*/
+	var move_right = false;
+	var move_left = false;
+	var move_up = false;
+	var move_down = false;
     /*移动函数*/
 	function auto_move(){
 	    var scale_x = Math.pow(Math.pow(x-hero_x,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
@@ -81,6 +86,22 @@ window.onload = function(){
 	/*刷新图像方法*/
 	function showhero(){
 	    /*跑图功能*/
+	    if(move_left)
+	    {
+	        x = hero_x - 20;
+	    }
+	    if(move_right)
+	    {
+	        x = hero_x + 20;
+	    }
+	    if(move_up)
+	    {
+	        y = hero_y - 20;
+	    }
+	    if(move_down)
+	    {
+	        y = hero_y + 20;
+	    }
 	    auto_move();
 	    auto_scroll();
 	    /*聊天设置*/
@@ -588,9 +609,23 @@ window.onload = function(){
         	});
     })
 	$("body").keydown(function(e){
+	    switch(e.keyCode)
+        {
+            case 65:
+            move_left = true
+            break;
+            case 68:
+            move_right = true
+            break;
+            case 83:
+            move_down = true
+            break;
+            case 87:
+            move_up = true
+            break;
+	    }
 	    if(gun_num==0){
 		switch(e.which){
-
 		case 81:
 		var label = "3";
 		/*按键同时更换武器*/
@@ -625,6 +660,24 @@ window.onload = function(){
 		gun_label = 1;
 		};}else{e.preventDefault();};
 	});
+	$("body").keyup
+	(function(e){
+        switch(e.keyCode)
+        {
+            case 65:
+            move_left = false
+            break;
+            case 68:
+            move_right = false
+            break;
+            case 83:
+            move_down = false
+            break;
+            case 87:
+            move_up = false
+            break;
+	    }
+	})
 	/*聊天按回车事件*/
 	$('#chatinput_id').bind('keypress',function(event){
     if(event.keyCode == "13") {

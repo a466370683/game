@@ -91,3 +91,38 @@ position:absolute;
 top:160px;
 left:0px,
 }
+
+#pack_id
+{
+    position:absolute;
+    z-index:6;
+    width:720px;
+    background-color:#fff;
+    display:none;
+}
+#pack_id tr
+{
+
+    height:50px;
+}
+#pack, tr, td
+{
+    border: 1px solid #cfa2a2;
+    padding:2px
+}
+td
+{
+    text-align: center
+    width:80px;
+    z-index:10;
+    background-color:#a57171;
+}
+
+#select_yes_id
+{
+    background-color:#fff;
+}
+#select_yes_id
+{
+display:none;
+}
