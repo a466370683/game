@@ -8,11 +8,13 @@
     <title>Title</title>
 </head>
 <body>
+<div style="position:absolute;width:30%;height:50%;left:25%;top:25%;background-color:#e0a135;">
 <form action="/loginverify/" method="post">
-    账号<input id="username_id" name="username" type="text" ><span id="username_span"></span><br><br>
-    密码<input id="password_id" name="password" type="password"><span id="password_span"></span><br><br>
-    验证码<input id="verify_id" name="verify" type="text"><span id="verify_span"></span><img src="/{{verify_image}}"><br><br>
-    <input id="subumit_id" type="submit" value="登录">&nbsp&nbsp<input type="button" value="注册">
+    <div style="margin-left:50px;margin-top:50px;width:50%;height50%;">账号:<input id="username_id" name="username" type="text" autocomplete="off"><span id="username_span"></span></div>
+    <div style="margin-left:50px;margin-top:10px;width:50%;height50%;">密码:<input id="password_id" name="password" type="password" autocomplete="off"><span id="password_span"></span></div>
+    <div style="margin-left:50px;margin-top:10px;width:50%;height50%;">验证码:<br/><input id="verify_id" name="verify" type="text" style="width:35%;" autocomplete="off"><span id="verify_span"></span>&nbsp<img style="width:50%" src="/{{verify_image}}"></div>
+    <div style="position:relative;margin-left:50px;margin-top:10px;"><input id="subumit_id" type="submit" value="登录">&nbsp&nbsp<input id="register_id" type="button" value="注册"></div>
 </form>
+</div>
 </body>
 </html>

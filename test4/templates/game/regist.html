@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="/static/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/regist.js"></script>
+    <link rel="stylesheet" href="/static/css/regist.css"/>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
-<form action="adduser/">
-    <input type="text" name="username">
-    <input type="password" name="password">
-    <input type="radio" name="gender" value="wman">
-    <input type="radio" name="gender" check="oncheck" value="man">
-    <input type="text" name="heroname">
+<div style="position:absolute;width:30%;height:50%;left:25%;top:25%;background-color:#e0a135;">
+    <form action="adduser/" method="post">
+    <div style="margin-left:50px;margin-top:50px;width:50%;height50%;">帐号：<input autocomplete="off" style="width:100%;" id="username_id" type="text" name="username"><span style="color:red"></span></div>
+    <div style="margin-left:50px;margin-top:10px;width:50%;height50%;">密码：<input autocomplete="off" style="width:100%;" id="password_id" type="password" name="password"><span style="color:red"></span></div>
+    <div style="margin-left:50px;margin-top:10px;width:50%;height50%;">名称：<input autocomplete="off" style="width:100%;" id="heroname_id" type="text" name="heroname"><span style="color:red"></span></div>
+    <div style="margin-left:50px;margin-top:10px;width:50%;height50%;">性别：女<input type="radio" name="gender" value="0"><span></span>
+    &nbsp男<input type="radio" name="gender" check="oncheck" value="1"></div>
+    <div style="position:relative;margin-left:50px;margin-top:10px;text-align:center;width:50%;height50%;"><input id="submit_id" type="submit" value="注册"></div>
 </form>
+</div>
 </body>
 </html>

@@ -14,7 +14,7 @@ window.onload = function(){
             	},
             	success: function (data) {
                 if(data=="1"){username_key=true;$("#username_span").text("");}else{
-$("#username_span").text("账号不存在");};
+    $("#username_span").text("账号不存在");};
             	},
         	});		
 		};
@@ -58,5 +58,10 @@ $("#username_span").text("账号不存在");};
 		if(username_key&&password_key&&verify_key){return true;}
 		else{return false;}
 	});
+
+	$("#register_id").click(function()
+	{
+	    window.location.href = 'http://127.0.0.1:8000/regist/'
+	})
 
 }

@@ -4,7 +4,7 @@ window.onload = function(){
     /*创建怪物的时间*/
     var start_time = 0;
 	/*步长*/
-	var stride = 10;
+	var stride = 15;
 	/*英雄横纵坐标*/
 	var hero_x = parseFloat($(".my_hero_class").css("left"));
 	var hero_y = parseFloat($(".my_hero_class").css("top"));
@@ -35,6 +35,14 @@ window.onload = function(){
 	var move_left = false;
 	var move_up = false;
 	var move_down = false;
+	/*拖拽物品*/
+	var Is_move = false;
+	/*替换前位置*/
+	var replace_x = 0;
+	var replace_y = 0;
+	var replace_img = null;
+	/*聊天滚动条位置*/
+    var chat_scroll_label = 1;
     /*移动函数*/
 	function auto_move(){
 	    var scale_x = Math.pow(Math.pow(x-hero_x,2)/(Math.pow(x-hero_x,2)+Math.pow(y-hero_y,2)),0.5);
@@ -43,6 +51,14 @@ window.onload = function(){
 		if(y<hero_y){scale_y = -scale_y;};
         if(Math.abs(x-hero_x)>=stride){hero_x = hero_x+scale_x*stride;};
 		if(Math.abs(y-hero_y)>=stride){hero_y = hero_y+scale_y*stride;};
+		if(hero_x<=10)
+		{
+		    hero_x = 10
+		}
+		if(hero_y<=10)
+		{
+		    hero_y = 10
+		}
 	};
 	function auto_scroll()
 	{
@@ -63,6 +79,15 @@ window.onload = function(){
     $(this).on("contextmenu",function(){return false;});
     $(this).on("dragstart",function(){return false;});
     });
+    /*禁用鼠标右键*/
+    //contextmenu事件返回false则屏蔽鼠标右键菜单
+    $(document).bind("contextmenu",function(e)
+    {
+            /*if($("#enabledRadio").prop("checked")){
+                return true;
+            }*/
+        return false;
+    });
 	/*设置聊天*/
 	function chat_set()
 	{
@@ -82,9 +107,24 @@ window.onload = function(){
     obj.css("left",menu_x);
     obj.css("top",menu_y)
 	}
-
+    /*设置背包位置*/
+	function setpackpost(obj,menu_x,menu_y)
+	{
+	menu_x = menu_x*window.innerWidth;
+	var s_x = scroll_x -100
+	if(s_x<=0){s_x=0;}
+	var menu_x = parseFloat(menu_x + s_x);
+	var menu_y = parseFloat(scroll_y+menu_y);
+    obj.css("left",menu_x);
+    obj.css("top",menu_y)
+	}
 	/*刷新图像方法*/
-	function showhero(){
+	function showhero()
+	{
+	    if(chat_scroll_label==1)
+	    {
+	        $("#chat_list_id").scrollTop(10000);
+	    }
 	    /*跑图功能*/
 	    if(move_left)
 	    {
@@ -107,12 +147,17 @@ window.onload = function(){
 	    /*聊天设置*/
 	    chat_set()
 	    /*菜单栏显示位置*/
-	    setmenupost($("#exit_id"),0.8);
-	    setmenupost($("#goattack_id"),0.15)
 	    setmenupost($("#adventrue_id"),0.3);
+	    setmenupost($("#exit_id"),0.8);
+	    setpackpost($("#payauthor_id"),0,100);
+	    setpackpost($("#payauthor_img_id"),0,130);
+	    setmenupost($("#goattack_id"),0.15)
 	    setmenupost($("#boss_id"),0.45)
 	    setmenupost($("#menu_id"),0)
 	    setmenupost($("#goods_id"),0.6)
+	    setpackpost($("#pack_id"),0.2,200)
+	    setpackpost($("#select_yes_id"),0.39,500)
+	    setpackpost($("#goods_list_id"),0.6,50)
 	    /*自己被伤害显示自动消失*/
 	    if(my_attack_label==1){
 	    my_attack_num += 1;
@@ -215,6 +260,7 @@ window.onload = function(){
                             },
                     });
                 gun.remove();
+                return false
                 };
             });
 	    });
@@ -547,7 +593,21 @@ window.onload = function(){
 	$('.image_goods_class').click(function(e){
 	    e.stopPropagation();
 	});
-
+	$('table').click(function(e){
+	    e.stopPropagation();
+	});
+	$("#yes_id").click(function(e){
+	    e.stopPropagation();
+	});
+	$("#no_id").click(function(e){
+	    e.stopPropagation();
+	});
+	$("#payauthor_id").click(function(e){
+	    e.stopPropagation();
+	});
+	$("#payauthor_img_id").click(function(e){
+	    e.stopPropagation();
+	});
 	$("body").unbind('click').click(function(e){
 		x = e.pageX;
 		y = e.pageY;
@@ -622,6 +682,9 @@ window.onload = function(){
             break;
             case 87:
             move_up = true
+            break;
+            case 66:
+            $("#pack_id").toggle();
             break;
 	    }
 	    if(gun_num==0){
@@ -797,5 +860,262 @@ window.onload = function(){
                 e.stopPropagation();
             })
         }
+    })
+    /*table拖拽物品*/
+	$("td").bind('mousedown',function(e)
+	{
+	    if(e.which==1)
+	    {
+	        $(this).css('background-color','#a57171')
+            replace_img = $(this).find("img");
+            replace_x = $(this).index();
+            replace_y = $(this).parent().index();
+            Is_move = true
+	    }
+	     if(e.which==3)
+        {
+            if($(this).find("img"))
+            {
+                $(this).find("img").remove()
+                change_this = $(this)
+                $.ajax
+                ({
+                    url: '/adventrue/changefire/',
+                    type: 'post',
+                    data:
+                    {
+                        i:$(this).parent().index(),
+                        j:$(this).index(),
+                    },
+                    success: function (data)
+                    {
+                        var img_str = '<img src="'+data.item.weaponname+'" style="width:30px;height:50px">'
+                        change_this.prepend(img_str)
+                    },
+                });
+            }
+        }
+	})
+    $("td").bind('mousemove',function(e)
+    {
+        if(Is_move)
+        {
+            var h_x = e.pageX;
+            var h_y = e.pageY;
+            $(this).css('left',h_x);
+            $(this).css('top',h_y);
+        }
+    })
+     $("body").bind('mouseup',function(e)
+     {
+        if(e.which==1)
+        {
+            if(replace_img==null)
+            {
+                return false;
+            }else
+            {
+                if(e.pageX<parseFloat($("table").css("left"))||e.pageX>parseFloat($("table").css("left"))+parseFloat($("table").css("width"))||e.pageY<parseFloat($("table").css("top"))||e.pageY>parseFloat($("table").css("top"))+parseFloat($("table").css("height")))
+                {
+                    $("#select_yes_id").show()
+                }
+            }
+        }
+     })
+    $("td").bind('mouseup',function(e)
+    {
+        if(e.which==1)
+        {
+            var table_x = parseFloat($("table").css("left"));
+            var table_y = parseFloat($("table").css("top"));
+            var table_width = parseFloat($("table").css("width"));
+            var table_height = parseFloat($("table").css("height"));
+            var td_x = parseFloat($(this).css("left"));
+            var td_y = parseFloat($(this).css("top"));
+            var td_width = parseFloat($(this).css("width"));
+            var td_height = parseFloat($(this).css("height"));
+            if(td_x>table_x&&td_x<table_x+table_width&&td_y>table_y&&td_y<table_y+table_height)
+            {
+                $("tr").each(function(i)
+                {
+                    $(this).find("td").each(function(j)
+                    {
+                        var this_x = parseFloat($(this).offset().left);
+                        var this_y = parseFloat($(this).offset().top);
+                        var this_width = parseFloat($(this).css("width"));
+                        var this_height = parseFloat($(this).css("height"));
+                        if(td_x>this_x&&td_x<this_x+this_width&&td_y>this_y&&td_y<this_y+this_height)
+                        {
+                            if(i-1==replace_y-1&&j==replace_x)
+                            {
+                                replace_img.parent().css('background-color','#00a9d766')
+                                return false
+                            }
+                            if($(this).find("img").length>0)
+                            {
+                                 $.ajax
+                                ({
+                                    url: '/adventrue/replacethings/',
+                                    type: 'post',
+                                    data:
+                                    {
+                                        label:'1',
+                                        i:i-1,
+                                        j:j,
+                                        replace_x:replace_x,
+                                        replace_y:replace_y,
+                                    },
+                                    success: function (data)
+                                    {
+                                        if(data)
+                                        {
+                                            $("tr").each(function(i)
+                                            {
+                                                $(this).find("td").each(function(j)
+                                                {
+                                                    if(i-1==parseInt(data.item.weapon_y)&&j==parseInt(data.item.weapon_x)||i-1==parseInt(data.item2.weapon_y)&&j==parseInt(data.item2.weapon_x))
+                                                    {
+                                                        $(this).find("img").remove();
+                                                    }
+                                                })
+                                            })
+                                            $("tr").each(function(i)
+                                            {
+                                                $(this).find("td").each(function(j)
+                                                {
+                                                    if(i-1==parseInt(data.item.weapon_y)&&j==parseInt(data.item.weapon_x))
+                                                    {
+                                                        $(this).css('background-color','#00a9d766')
+                                                        var pack_str = '<img src="'+data.item.weaponname+'" style="width:30px;height:50px">';
+                                                        $(this).prepend(pack_str);
+                                                        return false;
+                                                    }
+                                                })
+                                            })
+                                            $("tr").each(function(i)
+                                            {
+                                                $(this).find("td").each(function(j)
+                                                {
+                                                    if(i-1==parseInt(data.item2.weapon_y)&&j==parseInt(data.item2.weapon_x))
+                                                    {
+                                                        $(this).css('background-color','#00a9d766')
+                                                        var pack_str = '<img src="'+data.item2.weaponname+'" style="width:30px;height:50px">';
+                                                        $(this).prepend(pack_str);
+                                                        return false;
+                                                    }
+                                                })
+                                            })
+                                        }
+                                    },
+                                });
+                            }else
+                            {
+                                $.ajax
+                                ({
+                                    url: '/adventrue/replacethings/',
+                                    type: 'post',
+                                    data:
+                                    {
+                                        label:'0',
+                                        i:i-1,
+                                        j:j,
+                                        replace_x:replace_x,
+                                        replace_y:replace_y,
+                                    },
+                                    success: function (data)
+                                    {
+                                        if(data)
+                                        {
+                                            $("tr").each(function(i)
+                                            {
+                                                $(this).find("td").each(function(j)
+                                                {
+                                                    if(i-1==parseInt(data.item.weapon_y)&&j==parseInt(data.item.weapon_x))
+                                                    {
+                                                        $(this).css('background-color','#00a9d766')
+                                                        var pack_str = '<img src="'+data.item.weaponname+'" style="width:30px;height:50px">';
+                                                        $(this).prepend(pack_str);
+                                                        return false;
+                                                    }
+                                                })
+                                            })
+                                        }
+                                    },
+                                });
+                                replace_img.remove()
+                            }
+                        }
+                    })
+                })
+            }
+        Is_move = false;
+        }
+    })
+    $("#yes_id").click(function()
+    {
+        yes_click = $(this)
+        $.ajax
+        ({
+            url: '/adventrue/deleteimg/',
+            type: 'post',
+            data:
+            {
+                i:replace_y,
+                j:replace_x,
+            },
+            success: function (data)
+            {
+                replace_img.remove();
+                yes_click.parent().hide();
+                replace_img=null;
+            },
+        });
+    })
+    $("#no_id").click(function()
+    {
+        $("#select_yes_id").hide();
+    })
+    $("#goods_id").click(function()
+    {
+        $("#goods_list_id").toggle();
+    })
+    $(".button_goods_class").click(function()
+    {
+        $.ajax
+        ({
+            url: '/adventrue/buythings/',
+            type: 'post',
+            data:
+            {
+                weaponname:$(this).siblings("img").attr("src"),
+            },
+            success: function (data)
+            {
+                $("tr").each(function(i){
+                    $(this).find("td").each(function(j)
+                    {
+                        if(i-1==parseInt(data.item.weapon_y)&&j==parseInt(data.item.weapon_x))
+                        {
+                            $(this).css('background-color','#00a9d766')
+                            var img_str = '<img src="'+data.item.weaponname+'" style="width:30px;height:50px">'
+                            $(this).prepend(img_str);
+                            return false;
+                        }
+                    })
+                })
+            },
+        });
+    })
+    $("#payauthor_id").click(function()
+    {
+        $("#payauthor_img_id").toggle()
+    })
+    $("#chat_list_id").bind("mousedown",function()
+    {
+        chat_scroll_label = 0
+    })
+    $("#chat_list_id").bind("mouseup",function()
+    {
+        chat_scroll_label = 1
     })
 };

@@ -42,7 +42,7 @@ def get_my_hero(hero,weapon):
 #获取聊天信息
 def get_chat_list(request):
     try:
-        list1 = Chat.objects.filter(label=request.POST['chat_label']).filter(datetime__gt=request.session['datetime']).order_by("-datetime")[:5]
+        list1 = Chat.objects.filter(label=request.POST['chat_label']).filter(datetime__gt=request.session['datetime']).order_by("-datetime")[:20]
         chat_list = []
         for chat in list1:
             item = {}
@@ -217,15 +217,11 @@ def get_boss_list(map,hero_list):
     return b_list
 
 def get_weapon(hero):
-    weapon_list = Weapon.objects.filter(hero=hero)
-    temp = None
-    max_num = 0
-    for weapon in weapon_list:
-        weapon_level = int(weapon.weaponname[-5])
-        if(weapon_level>max_num):
-            max_num = weapon_level
-            temp = weapon
-    return temp
+    weapon = None
+    for weapon in Weapon.objects.filter(hero=hero):
+        if (weapon.weapon_x > 8 or weapon.weapon_y > 8):
+            weapon = weapon
+            return weapon
 
 def create_boss():
     boss = Boss()
@@ -279,10 +275,44 @@ def index(request):
         hero = get_my_hero(hero,weapon)
         hero_list.append(hero)
     skill_list = Skill.objects.all()
-    return render(request,'game/index.html',{'hero_list':hero_list,'map':map,'username':request.session["username"],'build_list':build_list,'skill_list':skill_list})
+    hero = Hero.objects.get(username=request.session['username'])
+    pack_list = get_pack_list(hero)
+    return render(request,'game/index.html',{'hero_list':hero_list,'map':map,'username':request.session["username"],'build_list':build_list,'skill_list':skill_list,'pack_list':pack_list})
 
 def adduser(request):
-    pass
+    hero = Hero()
+    hero.username = request.POST.get('username')
+    hero.heroname = request.POST.get('heroname')
+    hero.herolife = 1000
+    hero.experience = 0
+    hero.herolevel = 1
+    hero.herogender = int(request.POST.get('gender'))
+    hero.password = request.POST.get('password')
+    hero.herobody = ''
+    hero.hero_x = 0
+    hero.hero_y = 0
+    hero.loginlabel = 1
+    hero.hero_id = 0
+    hero.imagemap = GameMap.objects.get(pk=1)
+    hero.save()
+    hero.hero_id = hero.id
+    hero.save()
+    home = Home()
+    home.homebuild = '/static/image/homebuild/fire.png'
+    home.homebuild_x = 400
+    home.homebuild_y = 400
+    home.homewidth = 150
+    home.homeheight = 150
+    home.hero = hero
+    home.save()
+    weapon = Weapon()
+    weapon.weaponname = '/static/image/fire/level_fire_1.png'
+    weapon.weapon_x = 500
+    weapon.weapon_y = 500
+    weapon.hero = hero
+    weapon.save()
+    request.session['username'] = hero.username
+    return redirect("http://127.0.0.1:8000/sleep/")
 
 def regist(request):
     return render(request,'game/regist.html')
@@ -503,7 +533,7 @@ def attack_hero(request):
     attack_name = {}
     attack_name['hero_x'] = attack_h.hero_x
     attack_name['hero_y'] = attack_h.hero_y
-    attack_name['herofire'] = fire_hero
+    attack_name['herofire'] = 200*int(hero.herolevel)*0.1+200+fire_hero
     #hero_list = []
     #list = Hero.objects.all()
     # for h in list:
@@ -628,7 +658,9 @@ def sleep(request):
             h = get_my_hero(hero,weapon)
             hero_list.append(h)
     home_list = get_home(target_hero.id)
-    return render(request, 'game/sleep.html', {'hero_list': hero_list, 'map': map.imagemap,'username':request.session["username"],'home_list':home_list,'goods_label':goods_label,'monster_list':monster_list})
+    hero = Hero.objects.get(username=request.session['username'])
+    pack_list = get_pack_list(hero)
+    return render(request, 'game/sleep.html', {'hero_list': hero_list, 'map': map.imagemap,'username':request.session["username"],'home_list':home_list,'goods_label':goods_label,'monster_list':monster_list,'pack_list':pack_list})
 
 @decorator
 def gosleep(request):
@@ -928,7 +960,6 @@ def replacethings(request):
     return JsonResponse({'item': item,'item2':item2})
 
 def deleteimg(request):
-    print(int(request.POST['j']))
     weapon_x = int(request.POST['j'])
     weapon_y = int(request.POST['i'])-1
     weapon_list = Weapon.objects.all()
@@ -936,4 +967,44 @@ def deleteimg(request):
         if (weapon.weapon_x == weapon_x and weapon.weapon_y == weapon_y):
             weapon.delete()
             break
+    return HttpResponse('1')
+
+def buythings(request):
+    weapon = Weapon()
+    hero = Hero.objects.get(username=request.session['username'])
+    pack_list = get_pack_list(hero)
+    weapon = add_pack(pack_list,weapon,request.POST['weaponname'],hero)
+    item = {}
+    item['weaponname'] = weapon.weaponname
+    item['weapon_x'] = weapon.weapon_x
+    item['weapon_y'] = weapon.weapon_y
+    return JsonResponse({'item':item})
+
+def changefire(request):
+    i = int(request.POST['i'])-1
+    j = int(request.POST['j'])
+    hero = Hero.objects.get(username=request.session['username'])
+    weapon = get_weapon(hero)
+    item = {}
+    for w in Weapon.objects.filter(hero=hero):
+        if(w.weapon_x==j and w.weapon_y==i):
+            w.weapon_x = weapon.weapon_x
+            w.weapon_y = weapon.weapon_y
+            w.save()
+            break
+    weapon.weapon_y = i
+    weapon.weapon_x = j
+    weapon.save()
+    item['weapon_x'] = weapon.weapon_x
+    item['weapon_y'] = weapon.weapon_y+1
+    item['weaponname'] = weapon.weaponname
+    print(item)
+    return JsonResponse({'item':item})
+
+def heronameverify(request):
+    heroname = request.POST['heroname']
+    try:
+        hero = Hero.objects.get(heroname=heroname)
+    except Exception as e:
+        return HttpResponse('0')
     return HttpResponse('1')

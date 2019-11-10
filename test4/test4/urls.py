@@ -20,7 +20,7 @@ from game import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('index/',views.index),
-    path('regist/adduser',views.adduser),
+    path('regist/adduser/',views.adduser),
     path('regist/',views.regist),
     path('move/',views.move),
     path('showhero/',views.showhero),
@@ -49,5 +49,8 @@ urlpatterns = [
     path('adventrue/attack_boss/',views.attack_boss),
     path('adventrue/addthings/',views.addthings),
     path('adventrue/replacethings/',views.replacethings),
-    path('adventrue/deleteimg/',views.deleteimg)
+    path('adventrue/deleteimg/',views.deleteimg),
+    path('adventrue/buythings/',views.buythings),
+    path('adventrue/changefire/',views.changefire),
+    path('regist/heronameverify/',views.heronameverify)
 ]

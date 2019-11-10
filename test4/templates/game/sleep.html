@@ -8,6 +8,32 @@
     <title>{{username}}</title>
 </head>
 <body>
+<body>
+<img id="payauthor_img_id" src="/static/paygold.png" style="display:none;width:250px;height:350px;position:absolute;z-index:1">
+<div id="goods_list_id" style="position:absolute;display:none;z-index:10px">
+    <div class="goods_class" style="width:200px;height:150px;background-color:#fff;text-align:center"><img src="/static/image/fire/level_fire_4.png" style="width:30px;height:150px"><span class="button_goods_class" style="position:relative;left:30px;top:-10px;font-size:30px;background-color:#f0f">购买</span></div>
+    <div class="goods_class" style="width:200px;height:150px;background-color:#fff;text-align:center;margin-top:10px"><img src="/static/image/fire/level_fire_6.png" style="width:30px;height:150px"><span class="button_goods_class" style="position:relative;left:30px;top:-10px;font-size:30px;background-color:#f0f">购买</span></div>
+
+</div>
+<div id="select_yes_id" style="position:absolute;z-index:11;width:150px;height:80px;font-size:30px">
+    <span>是否要丢掉</span>
+    <button id="yes_id">是</button>&nbsp&nbsp<button id="no_id">否</button>
+</div>
+<table id="pack_id">
+    <th colspan="8" style="font-size:30px;">背包</th>
+    {% for row in pack_list %}
+  <tr>
+      {% for column in row %}
+      {%if column == 0 %}
+      <td style="width:30px;height:50px"></td>
+      {%else%}
+    <td style="background-color:#00a9d766"><img src="{{column}}" style="width:30px;height:50px"></td>
+      {%endif%}
+      {%endfor%}
+  </tr>
+   {%endfor%}
+    <tr><td colspan="8" style="background-color:#000"></td></tr>
+</table>
 {%for monster in monster_list%}
 <div class="monster_class" id="{{monster.id}}">
     <img src="{{monster.monstername}}" style="position:absolute;left:{{monster.monster_x}}px;top:{{monster.monster_y}}px;z-index:2">
@@ -42,6 +68,7 @@
 <input type="button" id="boss_id" value="BOSS">
 <input type="button" id="menu_id" value="菜单">
 <input type="button" id="goods_id" value="商城">
+<input type="button" id="payauthor_id" value="打赏作者">
 <dir id="herolife_id"></dir>
 <div id="hero_list">
 {%for hero in hero_list%}
@@ -66,12 +93,14 @@
     {%endfor%}
 </div>
 <div id="chat_id">
+    <div id="chat_list_id">
     <ul style="color:#f0f;">
         {%for chat in chat_list%}
         <li>{{chat.heroname}}说：{{chat.content}}
         </li>
         {%endfor%}
     </ul>
+        <div>
     <div id="chatdiv_id">
     <select id="select_id" style="background-color:#099;border:2px solid #099;">
         <option value="1">世界</option>
